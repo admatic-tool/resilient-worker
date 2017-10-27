@@ -7,7 +7,7 @@ proof of concept to a resilient worker using ampq client
  - use a rabbitmq to control the flux
  - return `worker` and an `publish` hedged in a same queue
  - control retries
- - callback on fail 
+ - callback on fail
  - callback on success
  - timeout a executin when fail to smoth retries
 
@@ -31,10 +31,10 @@ const { worker, publish } = workerFactory.createWorker({
   // max number of executing callback per message 
   max_try: 4,
   
-  // smoth process of retry 
+  // smoth process of retry
   retry_timeout: 1000,
 
-  // callback need return a promise 
+  // callback need return a promise
   callback: co.wrap(function*(doc) {
     const [ min, max ] = [ 1 , 10 ]
     const event = Math.random() * (max - min) + min

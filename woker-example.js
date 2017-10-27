@@ -1,22 +1,45 @@
 const co = require("co")
 const WorkerFactory = require("./index")
 
+
+const BgReset = "\x1b[0m"
+
+const FgRed = "\x1b[31m"
+const FgGreen = "\x1b[32m"
+const FgYellow = "\x1b[33m"
+
+// logger object
+const loggerObj = {
+  info(...args) {
+    console.log(FgGreen, "[worker]", ...args, BgReset)
+  },
+  debug(...args) {
+    console.log(FgGreen, "[worker]", ...args, BgReset)
+  },
+  error(...args) {
+    console.error(FgRed, "[worker]", ...args, BgReset)
+  }
+}
+
 // factory
 const chanceOfFail = 8
 
 // connect factory to amqp server
-const workerFactory = WorkerFactory('amqp://localhost')
+const workerFactory = WorkerFactory('amqp://localhost', { logger: loggerObj })
 
 // gen worker 
 const { worker, publish } = workerFactory.createWorker({
-  
+
+  // worker label name 
+  name: "RandomWorker",
+
   // control queue
   queue: "job_example_queue",
   
   // max number of executing callback per message 
   max_try: 4,
   
-  // smoth process of retry 
+  // (optional) smoth process of retry 
   retry_timeout: 1000,
 
   // callback need return a promise 
@@ -28,16 +51,20 @@ const { worker, publish } = workerFactory.createWorker({
       throw Error("random error")
   }),
 
-  // need return a Promise
+  // (optional) need return a Promise
   // doc is a body message
   failCallback: co.wrap(function*(doc) {
-    console.error("fail callback for", doc)
+    
+    // this will be logged
+    return [ "fail callback for", doc ]
   }),
 
-  // need return a Promise
+  // (optional) need return a Promise
   // doc is a body message
   successCallback: co.wrap(function*(doc) {
-    console.error("sucess callback for", doc)
+    
+    // this will be logged 
+    return [ "sucess callback for", doc ]
   })
 })
 
