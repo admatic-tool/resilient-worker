@@ -38,16 +38,15 @@ const { worker, publish } = workerFactory.createWorker({
   // doc is a body message
   successCallback: co.wrap(function*(doc) {
     console.error("sucess callback for", doc)
-    
   })
 })
 
 
 co(function*() {
-  publish({ a : 1 })
-  publish({ a : 3 })
-  publish({ a : 4 })
-  publish({ a : 5 })
+  publish({ a: 1 })
+  publish({ a: 3 })
+  publish({ a: 4 })
+  publish({ a: 5 })
   
 
   worker.start()
