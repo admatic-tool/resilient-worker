@@ -16,13 +16,25 @@ const WorkerFactory = (connectUrl) => {
 
     createWorker: meta => {
 
-      const { queue, max_try, retry_timeout, callback } = meta
+      const { 
+        queue, max_try, retry_timeout, callback, 
+        failCallback, successCallback
+      } = meta
 
       const publish = co.wrap(function*(message) {
+        try {
         const conn = yield _conn
         const ch = yield conn.createChannel()
-        return ch.sendToQueue(queue, new Buffer(JSON.stringify(message)))
-        ch.close()
+        const ok = yield ch.assertQueue(queue)
+        
+        if(ok)
+          ch.sendToQueue(queue, new Buffer(JSON.stringify(message)))
+          ch.close()
+          return true
+        } catch (err) {
+          ch.close()
+          throw err
+        }
       })
 
       const worker = {
@@ -49,6 +61,9 @@ const WorkerFactory = (connectUrl) => {
                   try {
                     yield callback(message)
 
+                    if (successCallback)
+                      successCallback(message)
+
                   } catch (err) {
 
                     if (message.retry)
@@ -63,6 +78,9 @@ const WorkerFactory = (connectUrl) => {
                         yield wait(retry_timeout)
 
                       yield publish(message)
+                    } else {
+                      if (failCallback)
+                        failCallback(message)
                     }
 
                   } finally {

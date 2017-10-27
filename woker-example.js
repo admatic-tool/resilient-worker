@@ -1,5 +1,6 @@
 const co = require("co")
 const WorkerFactory = require("./index")
+
 // factory
 const chanceOfFail = 8
 
@@ -25,12 +26,30 @@ const { worker, publish } = workerFactory.createWorker({
     console.log(event)
     if(event <= chanceOfFail)
       throw Error("random error")
+  }),
+
+  // need return a Promise
+  // doc is a body message
+  failCallback: co.wrap(function*(doc) {
+    console.error("fail callback for", doc)
+  }),
+
+  // need return a Promise
+  // doc is a body message
+  successCallback: co.wrap(function*(doc) {
+    console.error("sucess callback for", doc)
+    
   })
 })
 
 
 co(function*() {
   publish({ a : 1 })
+  publish({ a : 3 })
+  publish({ a : 4 })
+  publish({ a : 5 })
+  
+
   worker.start()
 })
 
