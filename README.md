@@ -124,6 +124,7 @@ executeNext("luiz", middlewareActions ).then(res =>
 ```
 
 # TODO
+ - publish by routingKey
  - retry control in header
  - logger
  - types (ts)
