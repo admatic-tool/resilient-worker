@@ -29,7 +29,7 @@ const executeNext = (argument, scene, i = 1) => {
       })
     }
   } else {
-    return null    
+    return argument
   }
 }
 

@@ -68,6 +68,60 @@ co(function*() {
 })
 ```
 
+# Helpers
+### executeNext(arguments, middlewareActions, stepN = 1)
+```javascript
+// supose that we have a chain of actions to be performed, like a middleware
+const middlewareActions = [
+  { 
+    order: 1, 
+    call: name => Promise.resolve([ name, "hello" ]) 
+  },
+  { 
+    order: 2, 
+    call: ([ name, message ]) =>
+      Promise.resolve([ name, message ].join(", ")) 
+  },
+]
+
+executeNext("luiz", middlewareActions ).then(res =>
+  console.log(res)
+)
+// "luiz, hello"
+```
+but if this fail
+```javascript
+// supose that we have a chain of actions to be performed, like a middleware
+const middlewareActions = [
+  { 
+    order: 1, 
+    call: names => Promise.resolve([ names, "hello" ]) 
+  },
+  { 
+    order: 2, 
+    call: ([ names, message ]) =>
+      Promise.resolve([ names.join(), message ].join(", ")) 
+  },
+]
+
+// the argument is a string, wich no have .join() method
+executeNext("luiz", middlewareActions ).then(res =>
+  console.log(res)
+).catch(err => {
+  /* error has a aditional metadata,about a 
+    - step that error occurs
+    - the arguments that step worker
+
+    with this, it can be restarted
+  */
+  console.error(err.step, err.arguments)
+  const [ name, message ] = err.arguments
+  executeNext([[name], message], middlewareActions, err.step).then(res => {
+    console.log(res)
+   // "luiz, hello"
+  })
+})
+```
 
 # TODO
  - retry control in header
