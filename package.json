@@ -18,5 +18,8 @@
     "amqplib": "^0.5.1",
     "co": "^4.6.0",
     "uuid": "^3.1.0"
+  },
+  "devDependencies": {
+    "mocha-co": "^1.17.2"
   }
 }

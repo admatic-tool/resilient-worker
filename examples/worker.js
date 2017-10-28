@@ -1,33 +1,15 @@
 const co = require("co")
-const WorkerFactory = require("./index")
-
-
-const BgReset = "\x1b[0m"
-
-const FgRed = "\x1b[31m"
-const FgGreen = "\x1b[32m"
-const FgYellow = "\x1b[33m"
-
-// logger object
-const loggerObj = {
-  info(...args) {
-    console.log(FgGreen, "[worker]", ...args, BgReset)
-  },
-  debug(...args) {
-    console.log(FgGreen, "[worker]", ...args, BgReset)
-  },
-  error(...args) {
-    console.error(FgRed, "[worker]", ...args, BgReset)
-  }
-}
+const WorkerFactory = require("../index")
+const logger = require("./support/logger")("[worker]")
+const { failInTen } = require("./support/failer")
 
 // factory
 const chanceOfFail = 8
 
 // connect factory to amqp server
-const workerFactory = WorkerFactory('amqp://localhost', { logger: loggerObj })
+const workerFactory = WorkerFactory('amqp://localhost', { logger })
 
-// gen worker 
+// gen worker
 const { worker, publish } = workerFactory.createWorker({
 
   // worker label name 
@@ -44,11 +26,7 @@ const { worker, publish } = workerFactory.createWorker({
 
   // callback need return a promise 
   callback: co.wrap(function*(doc) {
-    const [ min, max ] = [ 1 , 10 ]
-    const event = Math.random() * (max - min) + min
-    console.log(event)
-    if(event <= chanceOfFail)
-      throw Error("random error")
+    failInTen(8)
   }),
 
   // (optional) need return a Promise
@@ -69,13 +47,9 @@ const { worker, publish } = workerFactory.createWorker({
 })
 
 
-co(function*() {
-  publish({ a: 1 })
-  publish({ a: 3 })
-  publish({ a: 4 })
-  publish({ a: 5 })
-  
+publish({ a: 1 })
+publish({ a: 3 })
+publish({ a: 4 })
+publish({ a: 5 })
 
-  worker.start()
-})
-
+worker.start()

@@ -45,7 +45,7 @@ const WorkerFactory = (connectUrl, opts = {}) => {
 
         const conn = yield _conn
         const ch = yield conn.createChannel()
-        console.log(message, executionId)
+
         try {
 
           const ok = yield ch.assertQueue(queue)
