@@ -15,16 +15,16 @@ const WorkerFactory = (connectUrl, opts = {}) => {
   // logger wrapper 
   const loggerW = {
     info(...args) {
-      if (logger.info)
+      if (logger && logger.info)
         logger.info(...args)
     },
 
     error(...args) {
-      if (logger.error)
+      if (logger && logger.error)
         logger.error(...args)
     }, 
     debug(...args) {
-      if (logger.debug)
+      if (logger && logger.debug)
         logger.debug(...args)
     }
   }
@@ -37,12 +37,15 @@ const WorkerFactory = (connectUrl, opts = {}) => {
     createWorker: meta => {
 
       const { 
-        queue, max_try = 1, retry_timeout, callback, 
-        failCallback, successCallback, name
+        name, 
+        max_try = 1, retry_timeout,
+        callback, failCallback, successCallback,
+        queue, publishIn = {}
       } = meta
 
-      const publish = co.wrap(function*(message, executionId = null) {
-
+      const { exchange, routingKey } = publishIn
+      
+      const requeue = co.wrap(function*(message, executionId) {
         const conn = yield _conn
         const ch = yield conn.createChannel()
 
@@ -52,12 +55,34 @@ const WorkerFactory = (connectUrl, opts = {}) => {
           
           if (ok) {
             ch.sendToQueue(queue, new Buffer(JSON.stringify(message)))
-            
-            if (executionId)
-              loggerW.debug(name,"publishing", executionId, message)
-            else
-              loggerW.debug(name,"publishing", message)
+            loggerW.debug(name, "publishing", executionId, message)
           }
+
+          ch.close()
+          
+          return true
+
+        } catch (err) {
+
+          ch.close()
+          throw err
+        }
+      })
+
+      const publish = co.wrap(function*(message) {
+        const conn = yield _conn
+        const ch = yield conn.createChannel()
+
+        try {
+
+          if (exchange && routingKey)
+            ch.publish(exchange, routingKey ,  new Buffer(JSON.stringify(message)))
+          else if(queue)
+            ch.sendToQueue(queue, new Buffer(JSON.stringify(message)))
+          else 
+            throw new Error("no exchange & routingKey specified or a simple queue")
+
+          loggerW.debug(name, "publishing", message)
 
           ch.close()
           
@@ -89,14 +114,14 @@ const WorkerFactory = (connectUrl, opts = {}) => {
               co(function*() {
 
                 try {
-
+                  
                   const message = JSON.parse(msg.content.toString())
-
+                  
                   try {
                     loggerW.debug(name, executionId, "try callback")
-
+                    
                     yield callback(message)
-
+                    
                     if (successCallback) {
 
                       successCallback(message)
@@ -109,7 +134,6 @@ const WorkerFactory = (connectUrl, opts = {}) => {
                     }
 
                   } catch (err) {
-
                     loggerW.error(name, executionId, err.message)
 
                     if (message.retry)
@@ -123,10 +147,10 @@ const WorkerFactory = (connectUrl, opts = {}) => {
                       if(retry_timeout)
                         yield wait(retry_timeout).catch(loggerW.error)
                         
-                      publish(message, executionId)
+                      requeue(message, executionId)
 
                     } else {
-                      
+
                       if (failCallback)
                         failCallback(message)
                         .then(res => 

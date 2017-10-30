@@ -3,6 +3,7 @@ interface document {
 }
 
 declare namespace WorkerFactory {
+
   interface ConsumerMeta {
     name: string
     queue: string
@@ -50,6 +51,7 @@ declare namespace WorkerFactory {
     publish: Publish
   }
 }
+
 
 
 

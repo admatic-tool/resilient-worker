@@ -4,7 +4,7 @@
   "description": "resilient consumer prof",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "NODE_ENV=test mocha"
   },
   "keywords": [
     "resiliense",
@@ -20,6 +20,9 @@
     "uuid": "^3.1.0"
   },
   "devDependencies": {
-    "mocha-co": "^1.17.2"
+    "chai": "^4.1.2",
+    "mocha-co": "^1.17.2",
+    "rabbit-test-helper": "^1.0.1",
+    "sinon": "^4.0.2"
   }
 }
