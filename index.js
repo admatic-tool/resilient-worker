@@ -37,7 +37,7 @@ const WorkerFactory = (connectUrl, opts = {}) => {
     createWorker: meta => {
 
       const { 
-        queue, max_try, retry_timeout, callback, 
+        queue, max_try = 1, retry_timeout, callback, 
         failCallback, successCallback, name
       } = meta
 

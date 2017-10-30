@@ -17,7 +17,13 @@ const { worker, publish } = workerFactory.createWorker({
 
   // control queue
   queue: "job_example_queue",
-  
+
+  // (optional) if this info, the publisher use this
+  publishIn: {
+    routingKey: "jobs_key",
+    exchange: "test"
+  },
+
   // max number of executing callback per message 
   max_try: 4,
   
