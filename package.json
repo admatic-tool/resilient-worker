@@ -11,6 +11,10 @@
     "consumer",
     "ampq"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/admatic-tool/resilient-worker.git"
+  },
   "author": "Luiz Zamboni",
   "license": "ISC",
   "dependencies": {
