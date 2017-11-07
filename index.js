@@ -54,7 +54,11 @@ const WorkerFactory = (connectUrl, opts = {}) => {
           const ok = yield ch.assertQueue(queue)
           
           if (ok) {
-            ch.sendToQueue(queue, new Buffer(JSON.stringify(message)))
+            ch.sendToQueue(
+              queue, 
+              new Buffer(JSON.stringify(message)),
+              { messageId: executionId }
+            )
             loggerW.debug(name, "publishing", executionId, message)
           }
 
@@ -76,7 +80,7 @@ const WorkerFactory = (connectUrl, opts = {}) => {
         try {
 
           if (exchange && routingKey)
-            ch.publish(exchange, routingKey ,  new Buffer(JSON.stringify(message)))
+            ch.publish(exchange, routingKey , new Buffer(JSON.stringify(message)))
           else if(queue)
             ch.sendToQueue(queue, new Buffer(JSON.stringify(message)))
           else 
@@ -98,7 +102,7 @@ const WorkerFactory = (connectUrl, opts = {}) => {
       const worker = {
 
         start: co.wrap(function*() {
-
+          
           const self = this
           const conn = yield _conn
           
@@ -107,9 +111,18 @@ const WorkerFactory = (connectUrl, opts = {}) => {
           const ok = yield ch.assertQueue(queue)
           
           if(ok) {
-
+            
             ch.consume(queue, msg => {
-              const executionId = uuidv4()
+
+              if (msg === null) {
+                loggerW.debug("consumer cancelled")
+                return
+              }
+          
+
+              console.log(msg)
+              const { properties } = msg
+              const messageId = properties.messageId || uuidv4()
 
               co(function*() {
 
@@ -118,7 +131,7 @@ const WorkerFactory = (connectUrl, opts = {}) => {
                   const message = JSON.parse(msg.content.toString())
                   
                   try {
-                    loggerW.debug(name, executionId, "try callback")
+                    loggerW.debug(name, messageId, "try callback")
                     
                     yield callback(message)
                     
@@ -126,15 +139,15 @@ const WorkerFactory = (connectUrl, opts = {}) => {
 
                       successCallback(message)
                         .then(res => 
-                          loggerW.debug(name, executionId, "success callback", ...res)
+                          loggerW.debug(name, messageId, "success callback", ...res)
                         )
                         .catch(err => 
-                          loggerW.error(name, executionId, "success callback error", ...err)
+                          loggerW.error(name, messageId, "success callback error", ...err)
                         )
                     }
 
                   } catch (err) {
-                    loggerW.error(name, executionId, err.message)
+                    loggerW.error(name, messageId, err.message)
 
                     if (message.retry)
                       ++message.retry
@@ -147,17 +160,17 @@ const WorkerFactory = (connectUrl, opts = {}) => {
                       if(retry_timeout)
                         yield wait(retry_timeout).catch(loggerW.error)
                         
-                      requeue(message, executionId)
+                      requeue(message, messageId)
 
                     } else {
 
                       if (failCallback)
                         failCallback(message)
                         .then(res => 
-                          loggerW.debug(name, executionId, "fail callback success", ...res)
+                          loggerW.debug(name, messageId, "fail callback success", ...res)
                         )
                         .catch(err => 
-                          loggerW.error(name, executionId, "fail callback error", ...err)
+                          loggerW.error(name, messageId, "fail callback error", ...err)
                         )
                     }
 
@@ -165,7 +178,7 @@ const WorkerFactory = (connectUrl, opts = {}) => {
                     ch.ack(msg)
                   }
                 } catch (err) {
-                  loggerW.error(name, executionId, err)
+                  loggerW.error(name, messageId, err)
                   ch.ack(msg)
                 }
               })

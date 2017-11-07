@@ -46,12 +46,10 @@ const { worker, publish } = workerFactory.createWorker({
   // (optional) need return a Promise
   // doc is a body message
   successCallback: co.wrap(function*(doc) {
-    
     // this will be logged 
     return [ "sucess callback for", doc ]
   })
 })
-
 
 publish({ a: 1 })
 publish({ a: 3 })

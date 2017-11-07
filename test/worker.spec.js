@@ -6,7 +6,6 @@ const co = require("co")
 
 describe("publish", () => {
 
-  after(RabbitHelper.build)
 
   const workerMeta = {
     queue: "clicks_warehouse",
@@ -19,7 +18,8 @@ describe("publish", () => {
   context("success", () => {
 
     let attrs
-
+    after(RabbitHelper.build)
+    
     before(function*() {
       // clone
       attrs = JSON.parse(JSON.stringify(workerMeta))
@@ -58,14 +58,16 @@ describe("publish", () => {
   context("fail", () => {
     
     let attrs
-
+    after(RabbitHelper.build)
+    
     before(function*() {
       // clone
       attrs = JSON.parse(JSON.stringify(workerMeta))
 
-      attrs.callback =        sinon.spy(() => { 
+      attrs.callback = sinon.spy(() => { 
         throw new Error("errão !")
       })
+
       attrs.successCallback = sinon.spy(() => Promise.resolve(true))
       attrs.failCallback =    sinon.spy(() => Promise.resolve(true))
 
@@ -78,7 +80,7 @@ describe("publish", () => {
 
       worker.start()
 
-      for (let i = 0; i < 20; ++i)
+      for (let i = 0; i < 40; ++i)
         yield waitSeconds(.01)
     })
   
