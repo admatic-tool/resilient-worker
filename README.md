@@ -11,10 +11,15 @@ proof of concept to a resilient worker using ampq client
  - callback on success
  - timeout a executin when fail to smoth retries
 
+# install
+```shell
+$ npm install resilient-worker --save
+```
+
 # Usage
 ```javascript
 const co = require("co")
-const WorkerFactory = require("./index")
+const WorkerFactory = require("resilient-worker")
 
 // factory
 const chanceOfFail = 8
@@ -124,9 +129,5 @@ executeNext("luiz", middlewareActions ).then(res =>
 ```
 
 # TODO
- - publish by routingKey
- - retry control in header
- - logger
- - types (ts)
  - ampq configs (prefetch, ...)
  - options, assertion of queue
