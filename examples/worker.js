@@ -40,14 +40,14 @@ const { worker, publish, emitter } = workerFactory.createWorker({
   failCallback: co.wrap(function*(doc) {
     
     // this will be logged
-    return [ "fail callback for", doc ]
+    return doc
   }),
 
   // (optional) need return a Promise
   // doc is a body message
   successCallback: co.wrap(function*(doc) {
     // this will be logged 
-    return [ "sucess callback for", doc ]
+    return doc
   })
 })
 
@@ -60,5 +60,15 @@ worker.start()
 
 
 emitter.on("log", (level, ...data) => {
-  console.log(data)
+  switch(level) {
+    case "debug":
+    logger.debug(...data)
+    break
+    
+    case "error":
+    logger.error(...data)
+    break
+  }
+
+    
 })
