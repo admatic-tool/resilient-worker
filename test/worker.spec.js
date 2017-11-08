@@ -73,7 +73,7 @@ describe("publish", () => {
 
       yield RabbitHelper.build()
 
-      yield RabbitHelper.sendTo("clicks", JSON.stringify({a: 1 }))
+      yield RabbitHelper.sendTo("clicks", JSON.stringify({ a: 1 }))
 
       const workerFactory = WorkerFactory("amqp://localhost")
       const { worker } = workerFactory.createWorker(attrs)

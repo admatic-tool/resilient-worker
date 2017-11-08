@@ -1,6 +1,8 @@
 const co = require("co")
 const amqplib = require("amqplib")
-const uuidv4 = require('uuid/v4');
+const uuidv4 = require('uuid/v4')
+const { EventEmitter } = require('events')
+const emitter = new EventEmitter()
 
 // factory
 const chanceOfFail = 8
@@ -9,25 +11,6 @@ const wait = milisseconds =>
   new Promise(resolve => setTimeout(resolve, milisseconds))
 
 const WorkerFactory = (connectUrl, opts = {}) => {
-
-  const { logger } = opts
-
-  // logger wrapper 
-  const loggerW = {
-    info(...args) {
-      if (logger && logger.info)
-        logger.info(...args)
-    },
-
-    error(...args) {
-      if (logger && logger.error)
-        logger.error(...args)
-    }, 
-    debug(...args) {
-      if (logger && logger.debug)
-        logger.debug(...args)
-    }
-  }
 
   const _conn = amqplib.connect(connectUrl)
 
@@ -59,7 +42,7 @@ const WorkerFactory = (connectUrl, opts = {}) => {
               new Buffer(JSON.stringify(message)),
               { messageId: executionId }
             )
-            loggerW.debug(name, "publishing", executionId, message)
+            emitter.emit("log", "debug", name, executionId, "publishing", message)
           }
 
           ch.close()
@@ -85,9 +68,9 @@ const WorkerFactory = (connectUrl, opts = {}) => {
             ch.sendToQueue(queue, new Buffer(JSON.stringify(message)))
           else 
             throw new Error("no exchange & routingKey specified or a simple queue")
-
-          loggerW.debug(name, "publishing", message)
-
+          
+          emitter.emit("log", "debug", name, "publishing", message)
+            
           ch.close()
           
           return true
@@ -115,12 +98,11 @@ const WorkerFactory = (connectUrl, opts = {}) => {
             ch.consume(queue, msg => {
 
               if (msg === null) {
-                loggerW.debug("consumer cancelled")
+                emitter.emit("log", "debug", name, "cancelled")
                 return
               }
           
 
-              console.log(msg)
               const { properties } = msg
               const messageId = properties.messageId || uuidv4()
 
@@ -131,24 +113,24 @@ const WorkerFactory = (connectUrl, opts = {}) => {
                   const message = JSON.parse(msg.content.toString())
                   
                   try {
-                    loggerW.debug(name, messageId, "try callback")
+                    emitter.emit("log", "debug", name, messageId, "try callback")
                     
                     yield callback(message)
                     
                     if (successCallback) {
 
                       successCallback(message)
-                        .then(res => 
-                          loggerW.debug(name, messageId, "success callback", ...res)
+                        .then(res =>
+                          emitter.emit("log", "debug", name, messageId, "success callback", res)
                         )
                         .catch(err => 
-                          loggerW.error(name, messageId, "success callback error", ...err)
+                          emitter.emit("log", "debug", name, messageId, "error callback", err)
                         )
                     }
 
                   } catch (err) {
-                    loggerW.error(name, messageId, err.message)
-
+                    emitter.emit("log", "error", name, messageId, "try fail", err)
+                    
                     if (message.retry)
                       ++message.retry
                     else
@@ -158,7 +140,11 @@ const WorkerFactory = (connectUrl, opts = {}) => {
 
                       /* smoth the retry process */ 
                       if(retry_timeout)
-                        yield wait(retry_timeout).catch(loggerW.error)
+                        yield wait(retry_timeout).catch(err => 
+                          emitter.emit(
+                            "log", "error", name, messageId, "fail retry timeout", err
+                          )
+                        )
                         
                       requeue(message, messageId)
 
@@ -167,10 +153,10 @@ const WorkerFactory = (connectUrl, opts = {}) => {
                       if (failCallback)
                         failCallback(message)
                         .then(res => 
-                          loggerW.debug(name, messageId, "fail callback success", ...res)
+                          emitter.emit("log", "debug", name, messageId, "fail callback", res)
                         )
-                        .catch(err => 
-                          loggerW.error(name, messageId, "fail callback error", ...err)
+                        .catch(err =>
+                          emitter.emit("log", "error", name, messageId, "fail callback", err)
                         )
                     }
 
@@ -178,19 +164,19 @@ const WorkerFactory = (connectUrl, opts = {}) => {
                     ch.ack(msg)
                   }
                 } catch (err) {
-                  loggerW.error(name, messageId, err)
+                  emitter.emit("log", "error", name, messageId, err)
                   ch.ack(msg)
                 }
               })
             })
           } else {
-            if (logger.error)
-              logger.error(`no queue: ${queue}`)
+            emitter.emit("log", "error", "no queue:", queue)
           }
         }) // end start
       }
 
-      return { worker , publish }
+      
+      return { worker , publish, emitter }
     }
   }
 }

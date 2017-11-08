@@ -10,7 +10,7 @@ const chanceOfFail = 8
 const workerFactory = WorkerFactory('amqp://localhost', { logger })
 
 // gen worker
-const { worker, publish } = workerFactory.createWorker({
+const { worker, publish, emitter } = workerFactory.createWorker({
 
   // worker label name 
   name: "RandomWorker",
@@ -57,3 +57,8 @@ publish({ a: 4 })
 publish({ a: 5 })
 
 worker.start()
+
+
+emitter.on("log", (level, ...data) => {
+  console.log(data)
+})
