@@ -13,13 +13,13 @@ proof of concept to a resilient worker using ampq client
 
 # install
 ```shell
-$ npm install resilient-worker --save
+$ npm install resilient-consumer --save
 ```
 
 # Usage
 ```javascript
 const co = require("co")
-const WorkerFactory = require("resilient-worker")
+const WorkerFactory = require("resilient-consumer")
 
 // factory
 const chanceOfFail = 8

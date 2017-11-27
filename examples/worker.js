@@ -69,6 +69,4 @@ emitter.on("log", (level, ...data) => {
     logger.error(...data)
     break
   }
-
-    
 })
