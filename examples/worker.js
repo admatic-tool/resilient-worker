@@ -59,7 +59,7 @@ publish({ a: 5 })
 worker.start()
 
 
-emitter.on("log", (level, ...data) => {
+worker.on("log", (level, ...data) => {
   switch(level) {
     case "debug":
     logger.debug(...data)
