@@ -2,8 +2,8 @@
 
 const co = require("co")
 const amqplib = require("amqplib")
-const uuidv4 = require('uuid/v4')
-const { EventEmitter } = require('events')
+const uuidv4 = require("uuid/v4")
+const { EventEmitter } = require("events")
 const emitter = new EventEmitter()
 
 
@@ -18,13 +18,14 @@ const WorkerFactory = (connectUrl, opts = {}) => {
   // return workerFactory
   return {
 
-    createWorker: meta => {
+    createWorker(meta) {
 
       const {
         name,
         max_try = 1, retry_timeout,
         callback, failCallback, successCallback,
-        queue, publishIn = {}, prefetch = 1
+        queue, publishIn = {}, prefetch = 1,
+        queueOptions = {}
       } = meta
 
       const { exchange, routingKey } = publishIn
@@ -32,14 +33,14 @@ const WorkerFactory = (connectUrl, opts = {}) => {
       const requeue = co.wrap(function*(message, executionId, try_count) {
         const conn = yield _conn
         const ch = yield conn.createChannel()
-    
+
         try {
 
-          const ok = yield ch.assertQueue(queue)
+          const ok = yield ch.assertQueue(queue, queueOptions)
 
           if (ok) {
             ch.sendToQueue(
-              queue, 
+              queue,
               new Buffer(JSON.stringify(message)),
               { 
                 headers: {
@@ -52,10 +53,10 @@ const WorkerFactory = (connectUrl, opts = {}) => {
           }
 
           ch.close()
-          
+
           return true
 
-        } catch (err) {
+        } catch(err) {
 
           ch.close()
           throw err
@@ -70,10 +71,10 @@ const WorkerFactory = (connectUrl, opts = {}) => {
         try {
 
           if (exchange && routingKey)
-            ch.publish(exchange, routingKey , new Buffer(JSON.stringify(message)))
-          else if(queue)
+            ch.publish(exchange, routingKey, new Buffer(JSON.stringify(message)))
+          else if (queue)
             ch.sendToQueue(queue, new Buffer(JSON.stringify(message)))
-          else 
+          else
             throw new Error("no exchange & routingKey specified or a simple queue")
 
           emitter.emit("log", "debug", name, "publishing", message)
@@ -82,7 +83,7 @@ const WorkerFactory = (connectUrl, opts = {}) => {
 
           return true
 
-        } catch (err) {
+        } catch(err) {
 
           ch.close()
           throw err
@@ -92,19 +93,19 @@ const WorkerFactory = (connectUrl, opts = {}) => {
       const worker = {
 
         on(event, callback) {
-          emitter.on(event,callback)
+          emitter.on(event, callback)
         },
 
         start: co.wrap(function*() {
 
-          const self = this
           const conn = yield _conn
 
           const ch = yield conn.createChannel()
 
-          const ok = yield ch.assertQueue(queue)
+          const ok = yield ch.assertQueue(queue, queueOptions)
 
           ch.prefetch(prefetch)
+
           if(ok) {
 
             ch.consume(queue, msg => {
@@ -115,7 +116,7 @@ const WorkerFactory = (connectUrl, opts = {}) => {
               }
 
               const { properties } = msg
-              const { 
+              const {
                 messageId = uuidv4(),
                 headers
               } = properties
@@ -125,33 +126,33 @@ const WorkerFactory = (connectUrl, opts = {}) => {
               co(function*() {
 
                 try {
-                  
+
                   const message = JSON.parse(msg.content.toString())
-                  
+
                   try {
                     emitter.emit("log", "debug", name, messageId, try_count,  "try callback")
-                    
+
                     yield callback(message)
-                    
+
                     if (successCallback) {
 
                       successCallback(message)
                         .then(res =>
                           emitter.emit("log", "debug", name, messageId, try_count,  "success callback", res)
                         )
-                        .catch(err => 
+                        .catch(err =>
                           emitter.emit("log", "debug", name, messageId, try_count, "error callback", err)
                         )
                     }
 
-                  } catch (err) {
+                  } catch(err) {
                     emitter.emit("log", "error", name, messageId, try_count, "try fail", err)
 
                     if (try_count < max_try) {
 
-                      /* smoth the retry process */ 
-                      if(retry_timeout)
-                        yield wait(retry_timeout).catch(err => 
+                      /* smoth the retry process */
+                      if (retry_timeout)
+                        yield wait(retry_timeout).catch(err =>
                           emitter.emit(
                             "log", "error", name, messageId, try_count, "fail retry timeout", err
                           )
@@ -163,7 +164,7 @@ const WorkerFactory = (connectUrl, opts = {}) => {
 
                       if (failCallback)
                         failCallback(message)
-                        .then(res => 
+                        .then(res =>
                           emitter.emit(
                             "log", "debug", name, messageId, try_count, "fail callback", res
                           )
@@ -178,7 +179,7 @@ const WorkerFactory = (connectUrl, opts = {}) => {
                   } finally {
                     ch.ack(msg)
                   }
-                } catch (err) {
+                } catch(err) {
                   emitter.emit("log", "error", name, messageId, try_count, err)
                   ch.ack(msg)
                 }
@@ -190,7 +191,7 @@ const WorkerFactory = (connectUrl, opts = {}) => {
         }) // end start
       }
 
-      return { worker , publish, emitter }
+      return { worker, publish, emitter }
     }
   }
 }
