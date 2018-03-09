@@ -13,7 +13,7 @@ const wait = milisseconds =>
 
 const WorkerFactory = (connectUrl, opts = {}) => {
 
-  const _conn = amqplib.connect([connectUrl])
+  const _conn = amqplib.connect([ connectUrl ])
 
 
   // return workerFactory
@@ -42,9 +42,9 @@ const WorkerFactory = (connectUrl, opts = {}) => {
             new Buffer(JSON.stringify(message)),
             {
               headers: {
-                try_count: try_count + 1
+                try_count: try_count + 1,
               },
-              messageId: executionId 
+              messageId: executionId,
             }
           )
           emitter.emit("log", "debug", name, executionId, try_count, "publishing", message)
@@ -66,7 +66,6 @@ const WorkerFactory = (connectUrl, opts = {}) => {
         const ch = conn.createChannel()
 
         try {
-          console.log(exchange, routingKey, queue)
           if (exchange && routingKey)
             yield ch.publish(exchange, routingKey, new Buffer(JSON.stringify(message)))
           else if (queue)
@@ -180,14 +179,6 @@ const WorkerFactory = (connectUrl, opts = {}) => {
 
             }
           })
-          debugger
-          if(true) {
-            debugger
-
-          } else {
-            debugger
-            emitter.emit("log", "error", name, "no queue:", queue)
-          }
         }) // end start
       }
 
