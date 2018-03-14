@@ -1,7 +1,7 @@
 "use strict"
 
 const co = require("co")
-const amqplib = require("amqp-connection-manager")
+const amqplib = require("amqplib")
 const uuidv4 = require("uuid/v4")
 const { EventEmitter } = require("events")
 const emitter = new EventEmitter()
@@ -32,22 +32,26 @@ const WorkerFactory = (connectUrl, opts = {}) => {
       const { exchange, routingKey } = publishIn
 
       const requeue = co.wrap(function*(message, executionId, try_count) {
-        const conn = _conn
-        const ch = conn.createChannel()
+        const conn = yield _conn
+        const ch = yield conn.createChannel()
 
         try {
 
-          yield ch.sendToQueue(
-            queue,
-            new Buffer(JSON.stringify(message)),
-            {
-              headers: {
-                try_count: try_count + 1,
-              },
-              messageId: executionId,
-            }
-          )
-          emitter.emit("log", "debug", name, executionId, try_count, "publishing", message)
+          const ok = yield ch.assertQueue(queue, queueOptions)
+
+          if (ok) {
+            ch.sendToQueue(
+              queue,
+              new Buffer(JSON.stringify(message)),
+              { 
+                headers: {
+                  try_count: try_count + 1
+                },
+                messageId: executionId 
+              }
+            )
+            emitter.emit("log", "debug", name, executionId, try_count, "publishing", message)
+          }
 
           ch.close()
 
@@ -62,14 +66,14 @@ const WorkerFactory = (connectUrl, opts = {}) => {
 
       const publish = co.wrap(function*(message) {
 
-        const conn = _conn
-        const ch = conn.createChannel()
+        const conn = yield _conn
+        const ch = yield conn.createChannel()
 
         try {
           if (exchange && routingKey)
-            yield ch.publish(exchange, routingKey, new Buffer(JSON.stringify(message)))
+            ch.publish(exchange, routingKey, new Buffer(JSON.stringify(message)))
           else if (queue)
-            yield ch.sendToQueue(queue, new Buffer(JSON.stringify(message)))
+            ch.sendToQueue(queue, new Buffer(JSON.stringify(message)))
           else
             throw new Error("no exchange & routingKey specified or a simple queue")
 
@@ -94,91 +98,96 @@ const WorkerFactory = (connectUrl, opts = {}) => {
 
         start: co.wrap(function*() {
 
-          const conn = _conn
-          const ch = conn.createChannel({
-            setup: channel => {
+          const conn = yield _conn
 
-              channel.prefetch(prefetch)
-              channel.assertQueue(queue, queueOptions)
-              channel.consume(queue, msg => {
-                if (msg === null) {
-                  emitter.emit("log", "debug", name, "cancelled")
-                  return
-                }
-  
-                const { properties } = msg
-                const {
-                  messageId = uuidv4(),
-                  headers
-                } = properties
-  
-                const { try_count = 1 } = headers
-  
-                co(function*() {
-  
+          const ch = yield conn.createChannel()
+
+          const ok = yield ch.assertQueue(queue, queueOptions)
+
+          ch.prefetch(prefetch)
+
+          if(ok) {
+
+            ch.consume(queue, msg => {
+
+              if (msg === null) {
+                emitter.emit("log", "debug", name, "cancelled")
+                return
+              }
+
+              const { properties } = msg
+              const {
+                messageId = uuidv4(),
+                headers
+              } = properties
+
+              const { try_count = 1 } = headers
+
+              co(function*() {
+
+                try {
+
+                  const message = JSON.parse(msg.content.toString())
+
                   try {
-  
-                    const message = JSON.parse(msg.content.toString())
-  
-                    try {
-                      emitter.emit("log", "debug", name, messageId, try_count,  "try callback")
-  
-                      yield callback(message)
-  
-                      if (successCallback) {
-  
-                        successCallback(message)
-                          .then(res =>
-                            emitter.emit("log", "debug", name, messageId, try_count,  "success callback", res)
-                          )
-                          .catch(err =>
-                            emitter.emit("log", "debug", name, messageId, try_count, "error callback", err)
-                          )
-                      }
-  
-                    } catch(err) {
-                      emitter.emit("log", "error", name, messageId, try_count, "try fail", err)
-  
-                      if (try_count < max_try) {
-  
-                        /* smoth the retry process */
-                        if (retry_timeout)
-                          yield wait(retry_timeout).catch(err =>
-                            emitter.emit(
-                              "log", "error", name, messageId, try_count, "fail retry timeout", err
-                            )
-                          )
-  
-                        requeue(message, messageId, try_count)
-  
-                      } else {
-  
-                        if (failCallback)
-                          failCallback(message)
-                          .then(res =>
-                            emitter.emit(
-                              "log", "debug", name, messageId, try_count, "fail callback", res
-                            )
-                          )
-                          .catch(err =>
-                            emitter.emit(
-                              "log", "error", name, messageId, try_count, "fail callback", err
-                            )
-                          )
-                      }
-  
-                    } finally {
-                      ch.ack(msg)
+                    emitter.emit("log", "debug", name, messageId, try_count,  "try callback")
+
+                    yield callback(message)
+
+                    if (successCallback) {
+
+                      successCallback(message)
+                        .then(res =>
+                          emitter.emit("log", "debug", name, messageId, try_count,  "success callback", res)
+                        )
+                        .catch(err =>
+                          emitter.emit("log", "debug", name, messageId, try_count, "error callback", err)
+                        )
                     }
+
                   } catch(err) {
-                    emitter.emit("log", "error", name, messageId, try_count, err)
+                    emitter.emit("log", "error", name, messageId, try_count, "try fail", err)
+
+                    if (try_count < max_try) {
+
+                      /* smoth the retry process */
+                      if (retry_timeout)
+                        yield wait(retry_timeout).catch(err =>
+                          emitter.emit(
+                            "log", "error", name, messageId, try_count, "fail retry timeout", err
+                          )
+                        )
+
+                      requeue(message, messageId, try_count)
+
+                    } else {
+
+                      if (failCallback)
+                        failCallback(message)
+                        .then(res =>
+                          emitter.emit(
+                            "log", "debug", name, messageId, try_count, "fail callback", res
+                          )
+                        )
+                        .catch(err =>
+                          emitter.emit(
+                            "log", "error", name, messageId, try_count, "fail callback", err
+                          )
+                        )
+                    }
+
+                  } finally {
                     ch.ack(msg)
                   }
-                })
+                } catch(err) {
+                  emitter.emit("log", "error", name, messageId, try_count, err)
+                  ch.ack(msg)
+                }
               })
-
-            }
-          })
+            })
+          } else {
+            emitter.emit("log", "error", name, "no queue:", queue)
+          }
         }) // end start
       }
 

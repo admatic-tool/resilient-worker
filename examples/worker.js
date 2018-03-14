@@ -19,12 +19,12 @@ const { worker, publish } = workerFactory.createWorker({
   queue: "job_example_queue",
 
   // queue options to assert
-  // queueOptions: {
-  //   durable: true,
-  //   messageTtl: 60*1000,
-  //   maxLength: 50,
-  //   // deadLetterExchange: "job_example_deads"
-  // },
+  queueOptions: {
+    durable: true,
+    messageTtl: 60*1000,
+    maxLength: 50,
+    // deadLetterExchange: "job_example_deads"
+  },
 
   // (optional) if this info, the publisher use this
   publishIn: {
@@ -75,9 +75,7 @@ worker.on("log", (level, ...data) => {
   }
 })
 
-setInterval(() => {
-  publish({ a: 1 })
-  publish({ a: 3 })
-  publish({ a: 4 })
-  publish({ a: 5 })
-}, 2000)
+publish({ a: 1 })
+publish({ a: 3 })
+publish({ a: 4 })
+publish({ a: 5 })

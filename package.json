@@ -19,8 +19,7 @@
   "license": "ISC",
   "dependencies": {
     "amqp": "^0.2.6",
-    "amqp-connection-manager": "^1.3.7",
-    "amqplib": "^0.5.2",
+    "amqplib": "^0.5.1",
     "co": "^4.6.0",
     "uuid": "^3.1.0"
   },
