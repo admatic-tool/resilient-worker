@@ -13,7 +13,7 @@ const wait = milisseconds =>
 
 const WorkerFactory = (connectUrl, opts = {}) => {
 
-  const _conn = amqplib.connect([ connectUrl ])
+  const _conn = amqplib.connect(connectUrl)
 
 
   // return workerFactory
