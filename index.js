@@ -26,7 +26,7 @@ const WorkerFactory = (connectUrl, opts = {}) => {
         max_try = 1, retry_timeout,
         callback, failCallback, successCallback,
         queue, publishIn = {}, prefetch = 1,
-        queueOptions = {}
+        queueOptions
       } = meta
 
       const { exchange, routingKey } = publishIn
@@ -37,13 +37,13 @@ const WorkerFactory = (connectUrl, opts = {}) => {
 
         try {
 
-          const ok = yield ch.assertQueue(queue, queueOptions)
+          const ok = yield (queueOptions ? ch.assertQueue(queue, queueOptions) : ch.checkQueue(queue))
 
           if (ok) {
             ch.sendToQueue(
               queue,
               new Buffer(JSON.stringify(message)),
-              { 
+              {
                 headers: {
                   try_count: try_count + 1
                 },
@@ -102,11 +102,11 @@ const WorkerFactory = (connectUrl, opts = {}) => {
 
           const ch = yield conn.createChannel()
 
-          const ok = yield ch.assertQueue(queue, queueOptions)
+          const ok = yield (queueOptions ? ch.assertQueue(queue, queueOptions) : ch.checkQueue(queue))
 
           ch.prefetch(prefetch)
 
-          if(ok) {
+          if (ok) {
 
             ch.consume(queue, msg => {
 
