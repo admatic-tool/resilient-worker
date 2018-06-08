@@ -19,12 +19,12 @@ const { worker, publish } = workerFactory.createWorker({
   queue: "job_example_queue",
 
   // queue options to assert
-  queueOptions: {
-    durable: true,
-    messageTtl: 60*1000,
-    maxLength: 50,
-    // deadLetterExchange: "job_example_deads"
-  },
+  // queueOptions: {
+  //   durable: true,
+  //   messageTtl: 60*1000,
+  //   maxLength: 50,
+  //   deadLetterExchange: "job_example_deads"
+  // },
 
   // (optional) if this info, the publisher use this
   publishIn: {
@@ -48,6 +48,7 @@ const { worker, publish } = workerFactory.createWorker({
   failCallback: co.wrap(function*(doc) {
     
     // this will be logged
+    console.log(doc)
     return doc
   }),
 

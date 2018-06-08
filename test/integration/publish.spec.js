@@ -1,6 +1,6 @@
 
 
-const WorkerFactory = require("../index")
+const WorkerFactory = require("../../index")
 
 describe("publish", () => {
 
@@ -15,6 +15,7 @@ describe("publish", () => {
   
       const workerFactory = WorkerFactory("amqp://localhost")
       const { publish } = workerFactory.createWorker({ 
+        name: "PubExample",
         publishIn: {
           routingKey: "clicks",
           exchange: "app_test"
@@ -39,7 +40,7 @@ describe("publish", () => {
       yield RabbitHelper.build()
   
       const workerFactory = WorkerFactory("amqp://localhost")
-      const { publish } = workerFactory.createWorker({ 
+      const { publish } = workerFactory.createWorker({
         name: "PubExample",
         queue: "clicks_warehouse",
       })
