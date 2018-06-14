@@ -14,8 +14,9 @@ const { worker, publish } = workerFactory.createWorker({
 
   // worker label name
   name: "RandomWorker",
+  broker: "sqs",
   // control queue
-  queue: "job_example_queue",
+  queue: "development-worker.fifo",
 
   // queue options to assert
   // queueOptions: {
@@ -39,6 +40,7 @@ const { worker, publish } = workerFactory.createWorker({
 
   // callback need return a promise
   callback: co.wrap(function*(doc) {
+    debugger
     failInTen(5)
   }),
 

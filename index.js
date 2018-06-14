@@ -4,7 +4,11 @@ const uuidv4 = require("uuid/v4")
 const { EventEmitter } = require("events")
 const co = require("co")
 
-const Broker = require("./brokers/rabbit")
+const brokers = {
+  rabbit: "./brokers/rabbit",
+  sqs: "./brokers/sqs",
+}
+
 const wait = milisseconds =>
   new Promise(resolve => setTimeout(resolve, milisseconds))
 
@@ -14,8 +18,11 @@ const WorkerFactory = connectUrl => {
   return {
 
     createWorker(config) {
+
+      const { broker = "rabbit" } = config
+      const BrokerClass = require(brokers[broker])
       const emitter =  new EventEmitter()
-      const broker = new Broker(connectUrl, emitter, config)
+      const _broker = new BrokerClass(connectUrl, emitter, config)
 
       const { callback, name, successCallback, failCallback, max_try, retry_timeout } = config
 
@@ -27,13 +34,13 @@ const WorkerFactory = connectUrl => {
 
         start: co.wrap(function*() {
 
-          broker.consume(msg => {
+          _broker.consume(msg => {
 
             if (msg === null) {
               emitter.emit("log", "debug", name, "cancelled")
               return
             }
-
+            debugger
             const { properties } = msg
             const {
               messageId = uuidv4(),
@@ -78,7 +85,7 @@ const WorkerFactory = connectUrl => {
                         )
                       )
 
-                    broker.requeue(message, messageId, try_count)
+                      _broker.requeue(message, messageId, try_count)
 
                   } else {
 
@@ -111,7 +118,7 @@ const WorkerFactory = connectUrl => {
 
       return {
         worker,
-        publish: broker.publish,
+        publish: _broker.publish,
       }
     }
   }
