@@ -55,7 +55,7 @@ module.exports = class RabbitBroker {
 
     const { routingKey, exchange } = publishIn
     const ch = yield this.getChannel()
-    debugger
+
     try {
       if (exchange && routingKey)
         ch.publish(exchange, routingKey, new Buffer(JSON.stringify(message)))
@@ -110,16 +110,11 @@ module.exports = class RabbitBroker {
     }
   }
 
-  ack() {
-
-  }
 
   *consume(callback) {
     const { emitter } = this
     const { queue, prefetch = 1 } = this.opts
     const ch = yield this.getChannel()
-
-
 
     ch.prefetch(prefetch)
 

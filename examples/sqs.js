@@ -40,7 +40,6 @@ const { worker, publish } = workerFactory.createWorker({
 
   // callback need return a promise
   callback: co.wrap(function*(doc) {
-    debugger
     failInTen(5)
   }),
 
@@ -78,6 +77,6 @@ worker.on("log", (level, ...data) => {
 })
 
 publish({ a: 1 })
-publish({ a: 3 })
-publish({ a: 4 })
+// publish({ a: 3 })
+// publish({ a: 4 })
 publish({ a: 5 })

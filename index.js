@@ -40,13 +40,14 @@ const WorkerFactory = connectUrl => {
               emitter.emit("log", "debug", name, "cancelled")
               return
             }
-            debugger
+
             const { properties } = msg
             const {
               messageId = uuidv4(),
               headers
             } = properties
 
+            debugger
             const { try_count = 1 } = headers
 
             co(function*() {
@@ -59,7 +60,7 @@ const WorkerFactory = connectUrl => {
                   emitter.emit("log", "debug", name, messageId, try_count,  "try callback")
 
                   yield callback(message)
-                  
+
                   if (successCallback) {
 
                     successCallback(message)
@@ -72,7 +73,6 @@ const WorkerFactory = connectUrl => {
                   }
 
                 } catch(err) {
-
                   emitter.emit("log", "error", name, messageId, try_count, "try fail", err)
 
                   if (try_count < max_try) {
@@ -85,10 +85,14 @@ const WorkerFactory = connectUrl => {
                         )
                       )
 
-                      _broker.requeue(message, messageId, try_count)
-
+                      _broker.requeue(message, messageId, try_count + 1)
+                            .then(
+                              emitter.emit("log", "debug", name, messageId, try_count + 1, "requeued")
+                            )
+                            .catch(err =>
+                              emitter.emit("log", "error", name, messageId, try_count + 1, "requeue error", err)
+                            )
                   } else {
-
                     if (failCallback)
                       failCallback(message)
                       .then(res =>
@@ -118,7 +122,7 @@ const WorkerFactory = connectUrl => {
 
       return {
         worker,
-        publish: _broker.publish,
+        publish: message => _broker.publish(message, uuidv4(), 1)
       }
     }
   }
