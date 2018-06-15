@@ -42,7 +42,7 @@ const { worker, publish } = WorkerFactory.createWorker({
   // (optional) need return a Promise
   // doc is a body message
   successCallback: co.wrap(function*(doc) {
-    // this will be logged 
+    // this will be logged
     return doc
   })
 })
@@ -50,19 +50,19 @@ const { worker, publish } = WorkerFactory.createWorker({
 
 worker.start()
 
-
-worker.on("log", (level, ...data) => {
+worker.on("log", (workerName, ...data) => {
+  const [ level, msg, ...resources ] = data
+ 
   switch (level) {
     case "debug":
-    logger.debug(...data)
+    logger.debug(...[ workerName, msg.messageId(), msg.count(), ...resources ])
     break
 
     case "error":
-    logger.error(...data)
+    logger.error(...[ workerName, msg.messageId(), msg.count(), ...resources ])
     break
   }
 })
-
 publish({ a: 1 })
 // publish({ a: 3 })
 // publish({ a: 4 })
