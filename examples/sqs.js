@@ -1,36 +1,23 @@
 "use strict"
 
 const co = require("co")
-const WorkerFactory = require("../index")
+const WorkerFactory = require("../lib/index")
 const logger = require("./support/logger")("[worker]")
 const { failInTen } = require("./support/failer")
 
 
-// connect factory to amqp server
-const workerFactory = WorkerFactory("amqp://localhost")
-
 // gen worker
-const { worker, publish } = workerFactory.createWorker({
+const { worker, publish } = WorkerFactory.createWorker({
 
   // worker label name
   name: "RandomWorker",
-  broker: "sqs",
+  
   // control queue
-  queue: "development-worker.fifo",
-
-  // queue options to assert
-  // queueOptions: {
-  //   durable: true,
-  //   messageTtl: 60*1000,
-  //   maxLength: 50,
-  //   deadLetterExchange: "job_example_deads"
-  // },
-
-  // (optional) if this info, the publisher use this
-  publishIn: {
-    routingKey: "jobs_key",
-    exchange: "test",
+  broker: "sqs",
+  aws: {
+    region: "us-east-1"
   },
+  queue: "development-worker.fifo",
 
   // max number of executing callback per message
   max_try: 4,
@@ -46,7 +33,7 @@ const { worker, publish } = workerFactory.createWorker({
   // (optional) need return a Promise
   // doc is a body message
   failCallback: co.wrap(function*(doc) {
-    
+
     // this will be logged
     console.log(doc)
     return doc

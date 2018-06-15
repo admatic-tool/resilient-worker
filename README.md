@@ -25,10 +25,10 @@ const WorkerFactory = require("resilient-consumer")
 const chanceOfFail = 8
 
 // connect factory to amqp server
-const workerFactory = WorkerFactory('amqp://localhost')
+// const workerFactory = WorkerFactory('amqp://localhost')
 
 // gen worker 
-const { worker, publish } = workerFactory.createWorker({
+const { worker, publish } = WorkerFactory.createWorker({
   
   // control queue
   queue: "job_example_queue",

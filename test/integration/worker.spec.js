@@ -1,13 +1,14 @@
 
 
-const WorkerFactory = require("../../index")
+const WorkerFactory = require("../../lib/index")
 const sinon = require("sinon")
 const co = require("co")
 
-describe.only("publish", () => {
+describe("worker", () => {
 
 
   const workerMeta = {
+    connectUrl: "amqp://localhost",
     name: "TestWorker",
     queue: "clicks_warehouse",
     max_try: 4,
@@ -33,8 +34,7 @@ describe.only("publish", () => {
 
       yield RabbitHelper.sendTo("clicks", JSON.stringify({a: 1 }))
 
-      const workerFactory = WorkerFactory("amqp://localhost")
-      const { worker } = workerFactory.createWorker(attrs)
+      const { worker } = WorkerFactory.createWorker(attrs)
 
       worker.start()
 
@@ -75,8 +75,8 @@ describe.only("publish", () => {
       yield RabbitHelper.build()
 
       yield RabbitHelper.sendTo("clicks", JSON.stringify({ a: 1 }))
-      const workerFactory = WorkerFactory("amqp://localhost")
-      const { worker } = workerFactory.createWorker(attrs)
+
+      const { worker } = WorkerFactory.createWorker(attrs)
 
       worker.start()
 

@@ -1,16 +1,12 @@
 "use strict"
 
 const co = require("co")
-const WorkerFactory = require("../index")
+const WorkerFactory = require("../lib/index")
 const logger = require("./support/logger")("[worker]")
 const { failInTen } = require("./support/failer")
 
-
-// connect factory to amqp server
-const workerFactory = WorkerFactory("amqp://localhost")
-
 // gen worker
-const { worker, publish } = workerFactory.createWorker({
+const { worker, publish } = WorkerFactory.createWorker({
 
   // worker label name
   name: "RandomWorker",
