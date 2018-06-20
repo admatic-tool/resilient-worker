@@ -7,6 +7,9 @@ const { failInTen } = require("./support/failer")
 
 // gen worker
 const { worker, publish } = WorkerFactory.createWorker({
+  
+  // rabbit url
+  connectUrl: "amqp://localhost",
 
   // worker label name
   name: "RandomWorker",

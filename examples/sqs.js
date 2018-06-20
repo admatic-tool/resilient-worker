@@ -64,6 +64,6 @@ worker.on("log", (workerName, ...data) => {
   }
 })
 publish({ a: 1 })
-// publish({ a: 3 })
-// publish({ a: 4 })
+publish({ a: 3 })
+publish({ a: 4 })
 publish({ a: 5 })

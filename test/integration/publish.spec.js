@@ -12,16 +12,16 @@ describe("publish", () => {
     before(function*() {
   
       yield RabbitHelper.build()
-  
       const { publish } = WorkerFactory.createWorker({
         connectUrl: "amqp://localhost",
         name: "PubExample",
         publishIn: {
           routingKey: "clicks",
           exchange: "app_test"
-        }
+        },
+        callback: doc => doc
       })
-  
+
       yield publish({ a: "b" })
     })
   
@@ -43,6 +43,7 @@ describe("publish", () => {
         connectUrl: "amqp://localhost",
         name: "PubExample",
         queue: "clicks_warehouse",
+        callback: doc => doc
       })
   
       yield publish({ a: "b" })

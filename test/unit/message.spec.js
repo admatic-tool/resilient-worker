@@ -1,4 +1,4 @@
-const Message = require("../../lib/message")
+const Message = require("../../lib/brokers/message")
 
 describe("Message", () => {
 
@@ -9,6 +9,9 @@ describe("Message", () => {
       content: new Buffer(JSON.stringify({ a: 2 })),
     },
     { 
+      callback1: () => true 
+    },
+    {
       specificAttribute: 1
     }
   )
