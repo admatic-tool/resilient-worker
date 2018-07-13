@@ -12,9 +12,9 @@ describe("worker", () => {
     name: "TestWorker",
     queue: "clicks_warehouse",
     max_try: 4,
-    callback: null ,
+    callback: null,
     failCallback: null,
-    successCallback: null
+    successCallback: null,
   }
 
   context("success", () => {
@@ -65,7 +65,7 @@ describe("worker", () => {
       // clone
       attrs = JSON.parse(JSON.stringify(workerMeta))
 
-      attrs.callback = sinon.spy(() => { 
+      attrs.callback = sinon.spy(() => {
         throw new Error("errão !")
       })
 
@@ -97,6 +97,3 @@ describe("worker", () => {
     })
   })
 })
-
-
-

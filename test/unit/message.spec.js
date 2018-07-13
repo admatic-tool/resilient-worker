@@ -1,4 +1,4 @@
-const Message = require("../../lib/brokers/message")
+const Message = require("../../lib/messages/message")
 
 describe("Message", () => {
 
@@ -16,35 +16,37 @@ describe("Message", () => {
     }
   )
   describe("#toString", () => {
-    it("", () => {
+    it("convert contant to String", () => {
       expect(msg.toString()).to.be.equal('{"a":2}')
     })
   })
   describe("#parsedContent", () => {
-    it("", () => {
+    it("return a content copy", () => {
       expect(msg.parsedContent()).to.be.eqls({"a":2 })
     })
   })
+
   describe("#bufferContent", () => {
 
   })
+
   describe("#count", () => {
-    it("", () => {
+    it("should be the atual message try count", () => {
       expect(msg.count()).to.be.equal(2)
     })
   })
   describe("#nextCount", () => {
-    it("", () => {
+    it("should be the next message try count", () => {
       expect(msg.nextCount()).to.be.equal(3)
     })
   })
   describe("#messageId", () => {
-    it("", () => {
+    it("shoud return the internal messageId", () => {
       expect(msg.messageId()).to.be.equal("abc")
     })
   })
   describe("#getOriginal", () => {
-    it("", () => {
+    it("return the original Object", () => {
       expect(msg.getOriginal()).to.be.eqls({ 
         specificAttribute: 1
       })
