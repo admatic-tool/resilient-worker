@@ -1,9 +1,9 @@
 "use strict"
 
 const co = require("co")
-const WorkerFactory = require("../lib/index")
-const logger = require("./support/logger")("[worker]")
-const { failInTen } = require("./support/failer")
+const WorkerFactory = require("../../lib/index")
+const logger = require("../support/logger")("[worker]")
+const { failInTen } = require("../support/failer")
 
 
 // gen worker
@@ -33,7 +33,6 @@ const { worker, publish } = WorkerFactory.createWorker({
   // (optional) need return a Promise
   // doc is a body message
   failCallback: co.wrap(function*(doc) {
-
     // this will be logged
     console.log(doc)
     return doc
@@ -48,11 +47,11 @@ const { worker, publish } = WorkerFactory.createWorker({
 })
 
 
-worker.startBulk()
+worker.start()
 
 worker.on("log", (workerName, ...data) => {
   const [ level, msg, ...resources ] = data
- 
+
   switch (level) {
     case "debug":
     logger.debug(...[ workerName, msg.messageId(), msg.count(), ...resources ])
@@ -63,6 +62,8 @@ worker.on("log", (workerName, ...data) => {
     break
   }
 })
+
+
 publish({ a: 1 })
 publish({ a: 3 })
 publish({ a: 4 })

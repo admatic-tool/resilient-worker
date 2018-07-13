@@ -1,9 +1,9 @@
 "use strict"
 
 const co = require("co")
-const WorkerFactory = require("../lib/index")
-const logger = require("./support/logger")("[worker]")
-const { failInTen } = require("./support/failer")
+const WorkerFactory = require("../../lib/index")
+const logger = require("../support/logger")("[worker]")
+const { failInTen } = require("../support/failer")
 
 // gen worker
 const { worker, publish } = WorkerFactory.createWorker({

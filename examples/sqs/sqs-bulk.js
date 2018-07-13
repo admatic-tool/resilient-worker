@@ -1,34 +1,23 @@
 "use strict"
 
 const co = require("co")
-const WorkerFactory = require("../lib/index")
-const logger = require("./support/logger")("[worker]")
-const { failInTen } = require("./support/failer")
+const WorkerFactory = require("../../lib/index")
+const logger = require("../support/logger")("[worker]")
+const { failInTen } = require("../support/failer")
+
 
 // gen worker
 const { worker, publish } = WorkerFactory.createWorker({
-  
-  // rabbit url
-  connectUrl: "amqp://localhost",
 
   // worker label name
   name: "RandomWorker",
+  
   // control queue
-  queue: "job_example_queue",
-
-  // queue options to assert
-  // queueOptions: {
-  //   durable: true,
-  //   messageTtl: 60*1000,
-  //   maxLength: 50,
-  //   deadLetterExchange: "job_example_deads"
-  // },
-
-  // (optional) if this info, the publisher use this
-  publishIn: {
-    routingKey: "jobs_key",
-    exchange: "test",
+  broker: "sqs",
+  aws: {
+    region: "us-east-1"
   },
+  queue: "development-worker.fifo",
 
   // max number of executing callback per message
   max_try: 4,
@@ -44,7 +33,7 @@ const { worker, publish } = WorkerFactory.createWorker({
   // (optional) need return a Promise
   // doc is a body message
   failCallback: co.wrap(function*(doc) {
-    
+
     // this will be logged
     console.log(doc)
     return doc
@@ -53,14 +42,13 @@ const { worker, publish } = WorkerFactory.createWorker({
   // (optional) need return a Promise
   // doc is a body message
   successCallback: co.wrap(function*(doc) {
-    // this will be logged 
+    // this will be logged
     return doc
   })
 })
 
 
-worker.start()
-
+worker.startBulk()
 
 worker.on("log", (workerName, ...data) => {
   const [ level, msg, ...resources ] = data
@@ -75,7 +63,6 @@ worker.on("log", (workerName, ...data) => {
     break
   }
 })
-
 publish({ a: 1 })
 publish({ a: 3 })
 publish({ a: 4 })
