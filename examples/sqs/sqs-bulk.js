@@ -26,43 +26,51 @@ const { worker, publish } = WorkerFactory.createWorker({
   retry_timeout: 1000,
 
   // callback need return a promise
-  callback: co.wrap(function*(doc) {
+  callback: messages =>{
     failInTen(5)
   }),
 
   // (optional) need return a Promise
   // doc is a body message
-  failCallback: co.wrap(function*(doc) {
+  failCallback: messages => {
 
     // this will be logged
     console.log(doc)
-    return doc
+    return messages
   }),
 
   // (optional) need return a Promise
   // doc is a body message
-  successCallback: co.wrap(function*(doc) {
+  successCallback: messages => {
     // this will be logged
-    return doc
+    return messages
   })
 })
 
 
-worker.startBulk()
+worker.start()
+
+
 
 worker.on("log", (workerName, ...data) => {
-  const [ level, msg, ...resources ] = data
- 
+  const [ level, messages , action ] = data
+
   switch (level) {
     case "debug":
-    logger.debug(...[ workerName, msg.messageId(), msg.count(), ...resources ])
+    messages.forEach(msg => {
+      logger.debug(...[ workerName, msg.messageId(), msg.count(), action ])
+    })
     break
 
     case "error":
-    logger.error(...[ workerName, msg.messageId(), msg.count(), ...resources ])
+    messages.forEach(msg => {
+      logger.error(...[ workerName, msg.messageId(), msg.count(), action ])
+    })
     break
   }
 })
+
+
 publish({ a: 1 })
 publish({ a: 3 })
 publish({ a: 4 })

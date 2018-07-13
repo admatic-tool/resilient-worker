@@ -25,40 +25,46 @@ const { worker, publish } = WorkerFactory.createWorker({
   // (optional) smoth process of retry
   retry_timeout: 1000,
 
-  // callback need return a promise
-  callback: co.wrap(function*(doc) {
+  // callback
+  callback: messages => {
     failInTen(5)
-  }),
+    console.log("callback:", messages.payloads())
+  },
 
-  // (optional) need return a Promise
+  // (optional)
   // doc is a body message
-  failCallback: co.wrap(function*(doc) {
+  failCallback: messages => {
     // this will be logged
-    console.log(doc)
-    return doc
-  }),
 
-  // (optional) need return a Promise
+    console.log("fail:", messages.payloads())
+  },
+
+  // (optional)
   // doc is a body message
-  successCallback: co.wrap(function*(doc) {
+  successCallback: messages => {
     // this will be logged
-    return doc
-  })
+    console.log("success:", messages.payloads())
+  }
 })
 
 
 worker.start()
 
+
 worker.on("log", (workerName, ...data) => {
-  const [ level, msg, ...resources ] = data
+  const [ level, messages, action ] = data
 
   switch (level) {
     case "debug":
-    logger.debug(...[ workerName, msg.messageId(), msg.count(), ...resources ])
+    messages.forEach(msg => {
+      logger.debug(...[ workerName, msg.messageId(), msg.count(), action ])
+    })
     break
 
     case "error":
-    logger.error(...[ workerName, msg.messageId(), msg.count(), ...resources ])
+    messages.forEach(msg => {
+      logger.error(...[ workerName, msg.messageId(), msg.count(), action ])
+    })
     break
   }
 })

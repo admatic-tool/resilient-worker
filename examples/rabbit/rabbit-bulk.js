@@ -25,7 +25,7 @@ const { worker, publish } = WorkerFactory.createWorker({
   //   deadLetterExchange: "job_example_deads"
   // },
   // (optional)
-  prefetch: 5,
+  prefetch: 2,
   publishIn: {
     routingKey: "jobs_key",
     exchange: "test",
@@ -38,29 +38,35 @@ const { worker, publish } = WorkerFactory.createWorker({
   retry_timeout: 5000,
 
   // callback need return a promise
-  callback: co.wrap(function*(messages) {
+  callback: messages => {
 
-    messages.forEach(msg => {
-      try {
-        failInTen(5)
-      } catch(err) {
-        messages.setFailed(msg, err)
-      }
+
+    return new Promise(resolve => {
+     
+      setTimeout(() => {
+        messages.forEach(msg => {
+          try {
+            // failInTen(5)
+          } catch(err) {
+            messages.setFailed(msg, err)
+          }
+        })
+
+        resolve(true)
+      }, 1000)
     })
+  },
 
-    return true
-  }),
-
-  // (optional) need return a Promise
-  failCallback: co.wrap(function*(messages) {
+  // (optional)
+  failCallback: messages => {
     // this will be logged
     console.log("fails:", messages.payloads())
     return messages
-  }), 
+  }),
 
-  // (optional) need return a Promise
+  // (optional)
   // doc is a body message
-  successCallback: co.wrap(function*(messages) {
+  successCallback: messages => {
 
     console.log("success:", messages.payloads())
 
@@ -69,41 +75,42 @@ const { worker, publish } = WorkerFactory.createWorker({
 })
 
 
-worker.startBulk()
-// worker.start()
+worker.start()
 
 
 worker.on("log", (workerName, ...data) => {
-  const [ level, messages ] = data
+  const [ level, messages , action ] = data
 
   switch (level) {
     case "debug":
     messages.forEach(msg => {
-      logger.debug(...[ workerName, msg.messageId(), msg.count() ])
+      logger.debug(...[ workerName, msg.messageId(), msg.count(), action ])
     })
     break
 
     case "error":
     messages.forEach(msg => {
-      logger.error(...[ workerName, msg.messageId(), msg.count() ])
+      logger.error(...[ workerName, msg.messageId(), msg.count(), action ])
     })
     break
   }
 })
 
 
-setInterval(() => {
 
-  publish({ a: 1 })
-  publish({ a: 2 })
-  publish({ a: 3 })
-  publish({ a: 4 })
-  publish({ a: 5 })
 
-  publish({ a: 6 })
-  publish({ a: 7 })
-  publish({ a: 8 })
-  publish({ a: 9 })
-  publish({ a: 10 })
+// publish({ a: 1 })
+// publish({ a: 2 })
+// publish({ a: 3 })
+// publish({ a: 4 })
+// publish({ a: 5 })
 
-}, 1000 * 1)
+// publish({ a: 6 })
+
+setTimeout(() => {
+  let n = 0
+  while(n++ < 10) {
+    publish({ a: n })
+  }
+
+}, 100 * 1)
