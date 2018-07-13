@@ -1,6 +1,5 @@
 "use strict"
 
-const co = require("co")
 const WorkerFactory = require("../../lib/index")
 const logger = require("../support/logger")("[worker]")
 const { failInTen } = require("../support/failer")
@@ -14,6 +13,7 @@ const { worker, publish } = WorkerFactory.createWorker({
   name: "RandomWorker",
   // control queue
   queue: "job_example_queue",
+  bulkSize: 10,
 
   // queue options to assert
   // queueOptions: {

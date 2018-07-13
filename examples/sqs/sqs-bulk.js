@@ -11,7 +11,7 @@ const { worker, publish } = WorkerFactory.createWorker({
 
   // worker label name
   name: "RandomWorker",
-  
+  bulkSize: 10,
   // control queue
   broker: "sqs",
   aws: {
@@ -26,9 +26,9 @@ const { worker, publish } = WorkerFactory.createWorker({
   retry_timeout: 1000,
 
   // callback need return a promise
-  callback: messages =>{
+  callback: messages => {
     failInTen(5)
-  }),
+  },
 
   // (optional) need return a Promise
   // doc is a body message
@@ -37,14 +37,14 @@ const { worker, publish } = WorkerFactory.createWorker({
     // this will be logged
     console.log(doc)
     return messages
-  }),
+  },
 
   // (optional) need return a Promise
   // doc is a body message
   successCallback: messages => {
     // this will be logged
     return messages
-  })
+  }
 })
 
 

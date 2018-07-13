@@ -25,6 +25,7 @@ const { worker, publish } = WorkerFactory.createWorker({
   //   deadLetterExchange: "job_example_deads"
   // },
   // (optional)
+  bulkSize: 10,
   prefetch: 2,
   publishIn: {
     routingKey: "jobs_key",
@@ -62,7 +63,7 @@ const { worker, publish } = WorkerFactory.createWorker({
     // this will be logged
     console.log("fails:", messages.payloads())
     return messages
-  }),
+  },
 
   // (optional)
   // doc is a body message
@@ -71,7 +72,7 @@ const { worker, publish } = WorkerFactory.createWorker({
     console.log("success:", messages.payloads())
 
     return messages
-  })
+  }
 })
 
 

@@ -11,7 +11,7 @@ const { worker, publish } = WorkerFactory.createWorker({
 
   // worker label name
   name: "RandomWorker",
-  
+  bulkSize: 10,
   // control queue
   broker: "sqs",
   aws: {
