@@ -33,21 +33,24 @@ const { worker, publish } = WorkerFactory.createWorker({
   },
 
   // max number of executing callback per message
-  max_try: 4,
+  max_try: 2,
 
   // (optional) smoth process of retry
   retry_timeout: 5000,
 
   // callback need return a promise
-  callback: messages => {
+  callback(messages) {
 
 
     return new Promise(resolve => {
-     
       setTimeout(() => {
         messages.forEach(msg => {
           try {
-            // failInTen(5)
+            const content = msg.parsedContent()
+
+            console.log("processing:", content)
+            failInTen(5)
+            msg.setAttribute("payload", { a: "123" })
           } catch(err) {
             messages.setFailed(msg, err)
           }
@@ -59,17 +62,17 @@ const { worker, publish } = WorkerFactory.createWorker({
   },
 
   // (optional)
-  failCallback: messages => {
+  failCallback(messages) {
     // this will be logged
-    console.log("fails:", messages.payloads())
+    console.log("fails:", messages.map(msg => msg.getError().message ))
     return messages
   },
 
   // (optional)
   // doc is a body message
-  successCallback: messages => {
+  successCallback(messages) {
 
-    console.log("success:", messages.payloads())
+    console.log("success:", messages.map(msg => msg.getAttribute("payload")))
 
     return messages
   }
