@@ -26,14 +26,14 @@ const { worker, publish } = WorkerFactory.createWorker({
   retry_timeout: 1000,
 
   // callback
-  callback: messages => {
+  callback(messages) {
     failInTen(5)
     console.log("callback:", messages.payloads())
   },
 
   // (optional)
   // doc is a body message
-  failCallback: messages => {
+  failCallback(messages) {
     // this will be logged
 
     console.log("fail:", messages.payloads())
@@ -41,7 +41,7 @@ const { worker, publish } = WorkerFactory.createWorker({
 
   // (optional)
   // doc is a body message
-  successCallback: messages => {
+  successCallback(messages) {
     // this will be logged
     console.log("success:", messages.payloads())
   }

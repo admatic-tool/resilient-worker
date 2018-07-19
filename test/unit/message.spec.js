@@ -1,3 +1,5 @@
+"use strict"
+
 const Message = require("../../lib/messages/message")
 
 describe("Message", () => {
@@ -8,8 +10,8 @@ describe("Message", () => {
       messageId: "abc",
       content: new Buffer(JSON.stringify({ a: 2 })),
     },
-    { 
-      callback1: () => true 
+    {
+      callback1: () => true
     },
     {
       specificAttribute: 1
@@ -47,7 +49,7 @@ describe("Message", () => {
   })
   describe("#getOriginal", () => {
     it("return the original Object", () => {
-      expect(msg.getOriginal()).to.be.eqls({ 
+      expect(msg.getOriginal()).to.be.eqls({
         specificAttribute: 1
       })
     })

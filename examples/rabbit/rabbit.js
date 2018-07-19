@@ -64,7 +64,7 @@ worker.start()
 
 worker.on("log", (workerName, ...data) => {
   const [ level, messages, action ] = data
- 
+
   switch (level) {
     case "debug":
     messages.forEach(msg => {

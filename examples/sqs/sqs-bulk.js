@@ -26,22 +26,22 @@ const { worker, publish } = WorkerFactory.createWorker({
   retry_timeout: 1000,
 
   // callback need return a promise
-  callback: messages => {
+  callback(messages) {
     failInTen(5)
   },
 
   // (optional) need return a Promise
   // doc is a body message
-  failCallback: messages => {
+  failCallback(messages) {
 
     // this will be logged
-    console.log(doc)
+    console.log(messages)
     return messages
   },
 
   // (optional) need return a Promise
   // doc is a body message
-  successCallback: messages => {
+  successCallback(messages) {
     // this will be logged
     return messages
   }

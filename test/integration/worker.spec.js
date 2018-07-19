@@ -1,8 +1,7 @@
-
+"use strict"
 
 const WorkerFactory = require("../../lib/index")
 const sinon = require("sinon")
-const co = require("co")
 
 describe("worker", () => {
 
@@ -20,6 +19,7 @@ describe("worker", () => {
   context("success", () => {
 
     let attrs
+
     after(RabbitHelper.build)
     
     before(function*() {

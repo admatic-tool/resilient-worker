@@ -1,6 +1,5 @@
 "use strict"
 
-const co = require("co")
 const WorkerFactory = require("../../lib/index")
 const logger = require("../support/logger")("[worker]")
 const { failInTen } = require("../support/failer")
@@ -26,7 +25,6 @@ const { worker, publish } = WorkerFactory.createWorker({
   // },
   // (optional)
   bulkSize: 10,
-  prefetch: 2,
   publishIn: {
     routingKey: "jobs_key",
     exchange: "test",
@@ -41,14 +39,14 @@ const { worker, publish } = WorkerFactory.createWorker({
   // callback need return a promise
   callback(messages) {
 
-
     return new Promise(resolve => {
       setTimeout(() => {
-        messages.forEach(msg => {
+        messages.forEach((msg, i) => {
           try {
             const content = msg.parsedContent()
 
-            console.log("processing:", content)
+            console.log("processing: ", i, content)
+
             failInTen(5)
             msg.setAttribute("payload", { a: "123" })
           } catch(err) {
@@ -64,7 +62,7 @@ const { worker, publish } = WorkerFactory.createWorker({
   // (optional)
   failCallback(messages) {
     // this will be logged
-    console.log("fails:", messages.map(msg => msg.getError().message ))
+    console.log("fails:", messages.map(msg => msg.getError().message))
     return messages
   },
 
@@ -83,7 +81,7 @@ worker.start()
 
 
 worker.on("log", (workerName, ...data) => {
-  const [ level, messages , action ] = data
+  const [ level, messages, action ] = data
 
   switch (level) {
     case "debug":
