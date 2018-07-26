@@ -9,7 +9,7 @@ proof of concept to a resilient worker using ampq client
  - control retries
  - callback on fail
  - callback on success
- - timeout a executin when fail to smoth retries
+ - timeout a executin when fail to smooth retries
 
 # install
 ```shell
@@ -36,7 +36,7 @@ const { worker, publish } = WorkerFactory.createWorker({
   // max number of executing callback per message 
   max_try: 4,
   
-  // smoth process of retry
+  // smooth process of retry
   retry_timeout: 1000,
 
   // callback need return a promise

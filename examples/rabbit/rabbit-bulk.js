@@ -6,7 +6,7 @@ const { failInTen } = require("../support/failer")
 
 // gen worker
 const { worker, publish } = WorkerFactory.createWorker({
-  
+
   // rabbit url
   connectUrl: "amqp://localhost",
 
@@ -33,7 +33,7 @@ const { worker, publish } = WorkerFactory.createWorker({
   // max number of executing callback per message
   max_try: 2,
 
-  // (optional) smoth process of retry
+  // (optional) smooth process of retry
   retry_timeout: 5000,
 
   // callback need return a promise
@@ -73,7 +73,7 @@ const { worker, publish } = WorkerFactory.createWorker({
     console.log("success:", messages.map(msg => msg.getAttribute("payload")))
 
     return messages
-  }
+  },
 })
 
 
@@ -85,20 +85,18 @@ worker.on("log", (workerName, ...data) => {
 
   switch (level) {
     case "debug":
-    messages.forEach(msg => {
-      logger.debug(...[ workerName, msg.messageId(), msg.count(), action ])
-    })
-    break
+      messages.forEach(msg => {
+        logger.debug(...[ workerName, msg.messageId(), msg.count(), action ])
+      })
+      break
 
     case "error":
-    messages.forEach(msg => {
-      logger.error(...[ workerName, msg.messageId(), msg.count(), action ])
-    })
-    break
+      messages.forEach(msg => {
+        logger.error(...[ workerName, msg.messageId(), msg.count(), action ])
+      })
+      break
   }
 })
-
-
 
 
 // publish({ a: 1 })
@@ -111,8 +109,8 @@ worker.on("log", (workerName, ...data) => {
 
 setTimeout(() => {
   let n = 0
-  while(n++ < 10) {
+  while (n++ < 10)
     publish({ a: n })
-  }
+
 
 }, 100 * 1)

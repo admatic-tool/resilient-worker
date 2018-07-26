@@ -1,5 +1,7 @@
 "use strict"
 
+/* global RabbitHelper */
+
 const WorkerFactory = require("../../lib/index")
 const sinon = require("sinon")
 
@@ -21,7 +23,7 @@ describe("worker", () => {
     let attrs
 
     after(RabbitHelper.build)
-    
+
     before(function*() {
       // clone
       attrs = JSON.parse(JSON.stringify(workerMeta))
@@ -41,7 +43,7 @@ describe("worker", () => {
       for (let i = 0; i < 20; ++i)
         yield waitSeconds(.01)
     })
-  
+
     it("callback run one time", () => {
       expect(attrs.callback.callCount).to.be.equal(1)
     })
@@ -57,10 +59,10 @@ describe("worker", () => {
 
 
   context("fail", () => {
-    
+
     let attrs
     after(RabbitHelper.build)
-    
+
     before(function*() {
       // clone
       attrs = JSON.parse(JSON.stringify(workerMeta))
@@ -83,7 +85,7 @@ describe("worker", () => {
       for (let i = 0; i < 40; ++i)
         yield waitSeconds(.01)
     })
-  
+
     it("callback run max_tries times", () => {
       expect(attrs.callback.callCount).to.be.equal(4)
     })

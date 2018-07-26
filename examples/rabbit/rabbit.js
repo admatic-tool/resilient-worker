@@ -5,7 +5,7 @@ const logger = require("../support/logger")("[worker]")
 const { failInTen } = require("../support/failer")
 // gen worker
 const { worker, publish } = WorkerFactory.createWorker({
-  
+
   // rabbit url
   connectUrl: "amqp://localhost",
 
@@ -32,7 +32,7 @@ const { worker, publish } = WorkerFactory.createWorker({
   // max number of executing callback per message
   max_try: 4,
 
-  // (optional) smoth process of retry
+  // (optional) smooth process of retry
   retry_timeout: 1000,
 
   // callback need return a promise
@@ -55,7 +55,7 @@ const { worker, publish } = WorkerFactory.createWorker({
   successCallback(messages) {
     // this will be logged
     // console.log(messages)
-  }
+  },
 })
 
 
@@ -67,16 +67,16 @@ worker.on("log", (workerName, ...data) => {
 
   switch (level) {
     case "debug":
-    messages.forEach(msg => {
-      logger.debug(...[ workerName, msg.messageId(), msg.count(), action ])
-    })
-    break
+      messages.forEach(msg => {
+        logger.debug(...[ workerName, msg.messageId(), msg.count(), action ])
+      })
+      break
 
     case "error":
-    messages.forEach(msg => {
-      logger.error(...[ workerName, msg.messageId(), msg.count(), action ])
-    })
-    break
+      messages.forEach(msg => {
+        logger.error(...[ workerName, msg.messageId(), msg.count(), action ])
+      })
+      break
   }
 })
 
