@@ -22,13 +22,13 @@ describe("Message", () => {
       expect(msg.toString()).to.be.equal("{\"a\":2}")
     })
   })
-  describe("#parsedContent", () => {
+  describe("#getParsedContent", () => {
     it("return a content copy", () => {
-      expect(msg.parsedContent()).to.be.eqls({a: 2 })
+      expect(msg.getParsedContent()).to.be.eqls({a: 2 })
     })
   })
 
-  describe("#bufferContent", () => {
+  describe("#getBufferContent", () => {
 
   })
 
