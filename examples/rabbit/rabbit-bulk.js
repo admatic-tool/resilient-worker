@@ -36,21 +36,23 @@ const { worker, publish } = WorkerFactory.createWorker({
   // (optional) smooth process of retry
   retry_timeout: 5000,
 
-  // callback need return a promise
+  /**
+   * @param { Message[] } messages
+   */
   callback(messages) {
 
     return new Promise(resolve => {
       setTimeout(() => {
         messages.forEach((msg, i) => {
           try {
-            const content = msg.parsedContent()
+            const content = msg.getParsedContent()
 
             console.log("processing: ", i, content)
 
             failInTen(5)
-            msg.setAttribute("payload", { a: "123" })
+            msg.setSuccess({ msg: content })
           } catch(err) {
-            messages.setFailed(msg, err)
+            msg.setFail(err)
           }
         })
 
@@ -62,7 +64,7 @@ const { worker, publish } = WorkerFactory.createWorker({
   // (optional)
   failCallback(messages) {
     // this will be logged
-    console.log("fails:", messages.map(msg => msg.getError().message))
+    console.log("fails:", messages.map(msg => [ msg.getParsedContent(), msg.getError().message ]))
     return messages
   },
 
@@ -70,7 +72,7 @@ const { worker, publish } = WorkerFactory.createWorker({
   // doc is a body message
   successCallback(messages) {
 
-    console.log("success:", messages.map(msg => msg.getAttribute("payload")))
+    console.log("success:", messages.map(msg => msg.getSuccessPayload()))
 
     return messages
   },
@@ -86,13 +88,13 @@ worker.on("log", (workerName, ...data) => {
   switch (level) {
     case "debug":
       messages.forEach(msg => {
-        logger.debug(...[ workerName, msg.messageId(), msg.count(), action ])
+        logger.debug(...[ workerName, msg.messageId(), msg.count(), msg.getParsedContent(), action ])
       })
       break
 
     case "error":
       messages.forEach(msg => {
-        logger.error(...[ workerName, msg.messageId(), msg.count(), action ])
+        logger.error(...[ workerName, msg.messageId(), msg.count(), msg.getParsedContent(), action ])
       })
       break
   }
@@ -106,11 +108,16 @@ worker.on("log", (workerName, ...data) => {
 // publish({ a: 5 })
 
 // publish({ a: 6 })
+let n = 0
+const batch = () => {
+  setTimeout(() => {
+    let count = 0
+    while (count++ < 15)
+      publish({ a: n++ })
 
-setTimeout(() => {
-  let n = 0
-  while (n++ < 10)
-    publish({ a: n })
+    batch()
 
+  }, 1000 * 3)
+}
 
-}, 100 * 1)
+batch()
