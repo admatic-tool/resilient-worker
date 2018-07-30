@@ -13,7 +13,7 @@ const { worker, publish } = WorkerFactory.createWorker({
   name: "RandomWorker",
   // control queue
   queue: "job_example_queue",
-  bulkSize: 10,
+  bulkSize: 1,
 
   // queue options to assert
   // queueOptions: {
