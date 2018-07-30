@@ -6,7 +6,7 @@ const WorkerFactory = require("../../lib/index")
 
 describe("publish", () => {
 
-  after(RabbitHelper.build)
+  after(() => RabbitHelper.build())
 
   context("by routingKey", () => {
 
