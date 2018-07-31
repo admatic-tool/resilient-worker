@@ -18,8 +18,9 @@ describe("worker", () => {
     successCallback: null,
   }
 
+  const msgPublished = JSON.stringify({a: 1})
+
   context("success", () => {
-    const msgPublished = JSON.stringify({a: 1})
 
     context("callback returns a promise.", () => {
       let attrs
@@ -249,6 +250,45 @@ describe("worker", () => {
     })
 
     it("failCallback run one times", () => {
+      expect(attrs.failCallback.callCount).to.be.equal(1)
+    })
+  })
+
+  context("cancel", () => {
+
+    let attrs
+    after(() => RabbitHelper.build())
+
+    before(function*() {
+      // clone
+      attrs = JSON.parse(JSON.stringify(workerMeta))
+
+      attrs.callback = sinon.spy(messages => messages.map(msg => msg.setFail(new Error("foo err"), false)))
+
+      attrs.successCallback = sinon.spy(() => Promise.resolve(true))
+      attrs.failCallback =    sinon.spy(() => Promise.resolve(true))
+
+      yield RabbitHelper.build()
+
+      yield RabbitHelper.sendTo("clicks", JSON.stringify({ a: 1 }))
+
+      const { worker } = WorkerFactory.createWorker(attrs)
+
+      worker.start()
+
+      for (let i = 0; i < 40; ++i)
+        yield waitSeconds(.01)
+    })
+
+    it("callback runs one time", () => {
+      expect(attrs.callback.callCount).to.be.equal(1)
+    })
+
+    it("successCallback doesn't run", () => {
+      expect(attrs.successCallback.callCount).to.be.equal(0)
+    })
+
+    it("failCallback runs one time", () => {
       expect(attrs.failCallback.callCount).to.be.equal(1)
     })
   })
