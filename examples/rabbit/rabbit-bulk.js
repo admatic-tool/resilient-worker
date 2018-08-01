@@ -52,11 +52,11 @@ const { worker, publish } = WorkerFactory.createWorker({
             failInTen(5)
             msg.setSuccess({ msg: content })
           } catch(err) {
-            if (i == 0) {
-              msg.ignore(err)
-            } else {
-              msg.setFail(err)
-            }
+
+            msg.setFail(err)
+
+            if (i === 0)
+              msg.doNotContinueTry()
           }
         })
 

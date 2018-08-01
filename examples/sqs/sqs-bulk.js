@@ -20,29 +20,33 @@ const { worker, publish } = WorkerFactory.createWorker({
   queue: "development-worker.fifo",
 
   // max number of executing callback per message
-  max_try: 4,
+  max_try: 2,
 
   // (optional) smooth process of retry
   retry_timeout: 1000,
 
   // callback need return a promise
   callback(messages) {
-    failInTen(5)
+    for (const msg of messages) {
+      try {
+        failInTen(8)
+        msg.setSuccess({ ok: "ok" })
+      } catch(err) {
+        msg.setFail(err)
+      }
+    }
   },
 
-  // (optional) need return a Promise
-  // doc is a body message
-  failCallback(messages) {
 
-    // this will be logged
-    console.log(messages)
+  failCallback(messages) {
+    debugger
+    console.log("faild", messages.map(msg => msg.getError()))
     return messages
   },
 
-  // (optional) need return a Promise
-  // doc is a body message
+
   successCallback(messages) {
-    // this will be logged
+    console.log("success", messages.map(msg => msg.getSuccessPayload()))
     return messages
   },
 })
@@ -70,6 +74,28 @@ worker.on("log", (workerName, ...data) => {
 })
 
 
+publish({ a: 1 })
+publish({ a: 3 })
+publish({ a: 4 })
+publish({ a: 5 })
+publish({ a: 1 })
+publish({ a: 3 })
+publish({ a: 4 })
+publish({ a: 5 })
+publish({ a: 1 })
+publish({ a: 3 })
+publish({ a: 4 })
+publish({ a: 5 })
+
+
+publish({ a: 1 })
+publish({ a: 3 })
+publish({ a: 4 })
+publish({ a: 5 })
+publish({ a: 1 })
+publish({ a: 3 })
+publish({ a: 4 })
+publish({ a: 5 })
 publish({ a: 1 })
 publish({ a: 3 })
 publish({ a: 4 })
