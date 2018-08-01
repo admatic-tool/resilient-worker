@@ -56,13 +56,13 @@ worker.on("log", (workerName, ...data) => {
   switch (level) {
     case "debug":
       messages.forEach(msg => {
-        logger.debug(...[ workerName, msg.messageId(), msg.count(), action ])
+        logger.debug(...[ workerName, msg.messageId(), msg.tryCount(), action ])
       })
       break
 
     case "error":
       messages.forEach(msg => {
-        logger.error(...[ workerName, msg.messageId(), msg.count(), action ])
+        logger.error(...[ workerName, msg.messageId(), msg.tryCount(), action ])
       })
       break
   }

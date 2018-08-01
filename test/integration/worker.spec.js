@@ -263,7 +263,7 @@ describe("worker", () => {
       // clone
       attrs = JSON.parse(JSON.stringify(workerMeta))
 
-      attrs.callback = sinon.spy(messages => messages.map(msg => msg.setFail(new Error("foo err"), false)))
+      attrs.callback = sinon.spy(messages => messages.map(msg => msg.ignore(new Error("foo err"))))
 
       attrs.successCallback = sinon.spy(() => Promise.resolve(true))
       attrs.failCallback =    sinon.spy(() => Promise.resolve(true))

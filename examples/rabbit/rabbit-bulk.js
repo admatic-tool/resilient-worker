@@ -53,9 +53,8 @@ const { worker, publish } = WorkerFactory.createWorker({
             msg.setSuccess({ msg: content })
           } catch(err) {
             if (i == 0) {
-              msg.setFail(err, false)
-            }
-            else {
+              msg.ignore(err)
+            } else {
               msg.setFail(err)
             }
           }
@@ -93,13 +92,13 @@ worker.on("log", (workerName, ...data) => {
   switch (level) {
     case "debug":
       messages.forEach(msg => {
-        logger.debug(...[ workerName, msg.messageId(), msg.count(), msg.getParsedContent(), action ])
+        logger.debug(...[ workerName, msg.messageId(), msg.tryCount(), msg.getParsedContent(), action ])
       })
       break
 
     case "error":
       messages.forEach(msg => {
-        logger.error(...[ workerName, msg.messageId(), msg.count(), msg.getParsedContent(), action ])
+        logger.error(...[ workerName, msg.messageId(), msg.tryCount(), msg.getParsedContent(), action ])
       })
       break
   }
