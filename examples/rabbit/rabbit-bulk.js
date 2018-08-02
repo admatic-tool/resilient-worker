@@ -67,6 +67,9 @@ const { worker, publish } = WorkerFactory.createWorker({
 
   // (optional)
   failCallback(messages) {
+    failInTen(1) //this can throw an error
+
+
     // this will be logged
     console.log("fails:", messages.map(msg => [ msg.getParsedContent(), msg.getError().message ]))
     return messages
@@ -75,6 +78,7 @@ const { worker, publish } = WorkerFactory.createWorker({
   // (optional)
   // doc is a body message
   successCallback(messages) {
+    failInTen(1) //this can throw an error
 
     console.log("success:", messages.map(msg => msg.getSuccessPayload()))
 
@@ -89,18 +93,12 @@ worker.start()
 worker.on("log", (workerName, ...data) => {
   const [ level, messages, action ] = data
 
-  switch (level) {
-    case "debug":
-      messages.forEach(msg => {
-        logger.debug(...[ workerName, msg.messageId(), msg.tryCount(), msg.getParsedContent(), action ])
-      })
-      break
+  const knownLevels = [ "info", "debug", "warn", "error" ]
 
-    case "error":
-      messages.forEach(msg => {
-        logger.error(...[ workerName, msg.messageId(), msg.tryCount(), msg.getParsedContent(), action ])
-      })
-      break
+  if (knownLevels.indexOf(level) >= 0) {
+    messages.forEach(msg => {
+      logger[level](...[ workerName, msg.messageId(), msg.tryCount(), msg.getParsedContent(), action ])
+    })
   }
 })
 

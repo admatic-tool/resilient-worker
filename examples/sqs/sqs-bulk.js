@@ -39,8 +39,7 @@ const { worker, publish } = WorkerFactory.createWorker({
 
 
   failCallback(messages) {
-    debugger
-    console.log("faild", messages.map(msg => msg.getError()))
+    console.log("failed", messages.map(msg => msg.getError()))
     return messages
   },
 
@@ -54,22 +53,15 @@ const { worker, publish } = WorkerFactory.createWorker({
 
 worker.start()
 
-
 worker.on("log", (workerName, ...data) => {
   const [ level, messages, action ] = data
 
-  switch (level) {
-    case "debug":
-      messages.forEach(msg => {
-        logger.debug(...[ workerName, msg.messageId(), msg.tryCount(), action ])
-      })
-      break
+  const knownLevels = [ "info", "debug", "warn", "error" ]
 
-    case "error":
-      messages.forEach(msg => {
-        logger.error(...[ workerName, msg.messageId(), msg.tryCount(), action ])
-      })
-      break
+  if (knownLevels.indexOf(level) >= 0) {
+    messages.forEach(msg => {
+      logger[level](...[ workerName, msg.messageId(), msg.tryCount(), msg.getParsedContent(), action ])
+    })
   }
 })
 
