@@ -1,6 +1,6 @@
 Resilient Worker
 ===
-Is a worker library designed to works with different queue brokers (actualy **RabbitMQ** and  **AWS SQS**), offerting a common interface to **retry policy**, **successCallbacks**, **failCallbacks** , **ignore messages** and **bulk processing**.
+A worker lib designed to pull-and-process messages from different queue brokers (actually supporting **RabbitMQ** and  **AWS SQS**), which offers a common interface to **retry policy**, **successCallbacks**, **failCallbacks** , **ignore messages** and **bulk processing**.
 
 
 # Table of Contents
@@ -157,8 +157,7 @@ worker.start()
 
 
 ## Log
-**Resilient-Consumer** is agnostic of logger method, but it emits events
-that can be tracked by `worker.on(eventName, callback(...params))` method
+**Resilient-Consumer** is agnostic in terms of logging strategy, but it does emit trackable log events, implemented by the pattern `worker.on(eventName, callback(...params))`
 
 
 ```javascript
@@ -166,7 +165,7 @@ worker.start()
 
 /**
  * tack all "log" events, and works on these events
-*/
+ */
 worker.on("log", (workerName, ...data) => {
   const [ level, messages, action ] = data
 
@@ -188,8 +187,7 @@ worker.on("log", (workerName, ...data) => {
 
 ## Do Not Retry
 
-In some cases the message payload have problems (missing fields and others when not works more retries).
-For these cases use `msg.doNotContinueTry()` to mark message to not continue retry.
+The message payload may have errors sometimes (such as missing fields or other problems which doesn't worth a retry). For those cases you can use `msg.doNotContinueTry()` and mark the message to prevent the worker from retrying to process it.
 
 
 ```javascript
@@ -211,8 +209,7 @@ callback(messages) {
 ```
 
 ## Idempotency
-Some workers need to be idempotent and do not proccess same type of message twice,
-use `msg.setIgnore()` to mark message to be ignored and it not will pass by `worker.successCallback()` or `worker.failCallback()` and not will be retried too.
+You may need a worker with idempotent behavior for some types of messages, which means that it won't retry to process them twice. Mark those messages with `msg.setIgnore()` and they will also bypass `worker.successCallback()` and `worker.failCallback()` methods.
 
 ```javascript
 callback(messages) {
@@ -232,7 +229,8 @@ callback(messages) {
 
 ## SQS 
 **Experimental**
-The sqs worker will load your credendials by your **aws credential file** or by envvars:
+
+The SQS worker will load your credendials from an **aws credential file** or from envvars:
   - AWS_ACCESS_KEY_ID
   - AWS_SECRET_ACCESS_KEY
 
@@ -270,4 +268,4 @@ const { worker, publish } = WorkerFactory.createWorker({
 ```
 
 # Roadmap
-  - suport publish in **AWS SNS Topic** to aws `publish()` , using `publishIn` attribute
+  - Support for publishing in **AWS SNS Topic** to aws `publish()`, using the worker's `publishIn` attribute. << não entendi
