@@ -1,6 +1,6 @@
 {
   "name": "resilient-consumer",
-  "version": "2.0.0",
+  "version": "2.0.0-rc1",
   "description": "resilient consumer prof",
   "main": "index.js",
   "scripts": {

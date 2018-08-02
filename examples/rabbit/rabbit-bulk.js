@@ -89,13 +89,12 @@ const { worker, publish } = WorkerFactory.createWorker({
 
 worker.start()
 
+const logLevels = [ "debug", "info", "warn", "error" ]
 
 worker.on("log", (workerName, ...data) => {
   const [ level, messages, action ] = data
 
-  const knownLevels = [ "info", "debug", "warn", "error" ]
-
-  if (knownLevels.indexOf(level) >= 0) {
+  if (logLevels.indexOf(level) >= 0) {
     messages.forEach(msg => {
       logger[level](...[ workerName, msg.messageId(), msg.tryCount(), msg.getParsedContent(), action ])
     })
