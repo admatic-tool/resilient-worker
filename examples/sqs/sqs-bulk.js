@@ -56,12 +56,19 @@ worker.start()
 const logLevels = [ "debug", "info", "warn", "error" ]
 
 worker.on("log", (workerName, ...data) => {
-  const [ level, messages, action ] = data
+  const [ level, messages, action, additionalInfo ] = data
 
   if (logLevels.indexOf(level) >= 0) {
-    messages.forEach(msg => {
-      logger[level](...[ workerName, msg.messageId(), msg.tryCount(), msg.getParsedContent(), action ])
-    })
+    const extra = additionalInfo ? (additionalInfo.toString ? additionalInfo.toString() : JSON.stringify(additionalInfo)) : undefined
+    if (messages.length) {
+      messages.forEach(msg => {
+        const { message: errorMessage } = msg.getError() || {}
+        logger[level]({ workerName, messageId: msg.messageId(), tryCount: msg.tryCount(), contents: msg.toString(), action, errorMessage, extra })
+      })
+    }
+    else {
+      logger[level]({ workerName, action, extra })
+    }
   }
 })
 

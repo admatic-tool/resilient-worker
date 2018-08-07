@@ -83,7 +83,8 @@ const { worker, publish } = WorkerFactory.createWorker({
 })
 
 
-worker.start()
+// worker.start()
+worker.start().then(() => worker.stop()).then(() => worker.start())
 
 const logLevels = [ "debug", "info", "warn", "error" ]
 
@@ -91,15 +92,18 @@ worker.on("log", (workerName, ...data) => {
   const [ level, messages, action, additionalInfo ] = data
 
   if (logLevels.indexOf(level) >= 0) {
-    messages.forEach(msg => {
-      const { message: errorMessage } = msg.getError() || {}
-      const extra = additionalInfo ? (additionalInfo.toString ? additionalInfo.toString() : JSON.stringify(additionalInfo)) : undefined
-
-      logger[level]({ workerName, messageId: msg.messageId(), tryCount: msg.tryCount(), parsedContent: msg.getParsedContent(), action, errorMessage, extra })
-    })
+    const extra = additionalInfo ? (additionalInfo.toString ? additionalInfo.toString() : JSON.stringify(additionalInfo)) : undefined
+    if (messages.length) {
+      messages.forEach(msg => {
+        const { message: errorMessage } = msg.getError() || {}
+        logger[level]({ workerName, messageId: msg.messageId(), tryCount: msg.tryCount(), contents: msg.toString(), action, errorMessage, extra })
+      })
+    }
+    else {
+      logger[level]({ workerName, action, extra })
+    }
   }
 })
-
 
 // publish({ a: 1 })
 // publish({ a: 2 })

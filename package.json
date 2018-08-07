@@ -1,6 +1,6 @@
 {
   "name": "resilient-consumer",
-  "version": "2.0.0-rc2",
+  "version": "2.0.0-rc3",
   "description": "resilient consumer prof",
   "main": "index.js",
   "scripts": {
@@ -19,7 +19,7 @@
   "license": "ISC",
   "dependencies": {
     "amqp": "^0.2.6",
-    "amqplib": "^0.5.1",
+    "amqplib": "^0.5.2",
     "aws-sdk": "^2.254.1",
     "co": "^4.6.0",
     "underscore": "^1.9.1",
