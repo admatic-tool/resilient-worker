@@ -31,6 +31,8 @@ describe("worker", () => {
         // clone
         attrs = JSON.parse(JSON.stringify(workerMeta))
 
+        attrs.exitOnCancel = false
+
         attrs.callback =        sinon.spy(() => Promise.resolve(true))
         attrs.successCallback = sinon.spy(() => Promise.resolve(true))
         attrs.failCallback =    sinon.spy(() => Promise.resolve(true))
@@ -76,6 +78,8 @@ describe("worker", () => {
       before(function*() {
         // clone
         attrs = JSON.parse(JSON.stringify(workerMeta))
+
+        attrs.exitOnCancel = false
 
         attrs.callback =        sinon.spy(messages => {
           messages.map(msg => msg.setSuccess(`success: ${msg.toString()}`))
@@ -126,6 +130,8 @@ describe("worker", () => {
         // clone
         attrs = JSON.parse(JSON.stringify(workerMeta))
 
+        attrs.exitOnCancel = false
+
         attrs.callback =        sinon.spy(messages => messages.map(msg => msg.setSuccess(`success: ${msg.toString()}`)))
         attrs.successCallback = sinon.spy(() => Promise.resolve(true))
         attrs.failCallback =    sinon.spy(() => Promise.resolve(true))
@@ -171,6 +177,8 @@ describe("worker", () => {
       before(function*() {
         // clone
         attrs = JSON.parse(JSON.stringify(workerMeta))
+
+        attrs.exitOnCancel = false
 
         attrs.callback =        sinon.spy(() => "asd")
         attrs.successCallback = sinon.spy(() => Promise.resolve(true))
@@ -220,6 +228,8 @@ describe("worker", () => {
       // clone
       attrs = JSON.parse(JSON.stringify(workerMeta))
 
+      attrs.exitOnCancel = false
+
       attrs.callback = sinon.spy(messages => messages.map(msg => msg.setIgnore("already processed")))
 
       attrs.successCallback = sinon.spy(() => Promise.resolve(true))
@@ -260,6 +270,8 @@ describe("worker", () => {
       before(function*() {
         // clone
         attrs = JSON.parse(JSON.stringify(workerMeta))
+
+        attrs.exitOnCancel = false
 
         attrs.callback = sinon.spy(() => {
           throw new Error("errão !")
@@ -302,6 +314,8 @@ describe("worker", () => {
       before(function*() {
         // clone
         attrs = JSON.parse(JSON.stringify(workerMeta))
+
+        attrs.exitOnCancel = false
 
         attrs.callback = sinon.spy(messages =>
           messages.map(msg =>
