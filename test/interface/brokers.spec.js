@@ -22,11 +22,15 @@ describe("brokers interface", () => {
       })
 
       it("#requeue", () => {
-        expect(instance.consume).to.be.a("Function")
+        expect(instance.requeue).to.be.a("Function")
       })
 
       it("#remove", () => {
-        expect(instance.consume).to.be.a("Function")
+        expect(instance.remove).to.be.a("Function")
+      })
+
+      it("#stop", () => {
+        expect(instance.stop).to.be.a("Function")
       })
     })
   })
