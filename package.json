@@ -1,13 +1,14 @@
 {
   "name": "resilient-consumer",
-  "version": "2.0.0-rc3",
-  "description": "resilient consumer prof",
+  "version": "2.0.0",
+  "description": "A worker lib designed to pull-and-process messages from different queue brokers",
   "main": "index.js",
   "scripts": {
     "test": "NODE_ENV=test mocha"
   },
   "keywords": [
     "resiliense",
+    "worker",
     "consumer",
     "ampq"
   ],
