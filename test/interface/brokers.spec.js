@@ -1,15 +1,17 @@
+"use strict"
+
 const _ = require("underscore")
 const brokers = require("../../lib/brokers")
 
 
 describe("brokers interface", () => {
 
-  const instances = _(brokers).keys().map(k => 
+  const instances = _(brokers).keys().map(k =>
     ({ name: k, instance:  new brokers[k]({ validate: false }) })
   )
- 
+
   instances.forEach(broker => {
-    const { name , instance } = broker 
+    const { name, instance } = broker
     describe(`${name} methods`, () => {
       it("#publish", () => {
         expect(instance.publish).to.be.a("Function")
@@ -20,11 +22,15 @@ describe("brokers interface", () => {
       })
 
       it("#requeue", () => {
-        expect(instance.consume).to.be.a("Function")
+        expect(instance.requeue).to.be.a("Function")
       })
 
       it("#remove", () => {
-        expect(instance.consume).to.be.a("Function")
+        expect(instance.remove).to.be.a("Function")
+      })
+
+      it("#stop", () => {
+        expect(instance.stop).to.be.a("Function")
       })
     })
   })

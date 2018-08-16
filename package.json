@@ -1,13 +1,14 @@
 {
   "name": "resilient-consumer",
   "version": "2.0.0",
-  "description": "resilient consumer prof",
+  "description": "A worker lib designed to pull-and-process messages from different queue brokers",
   "main": "index.js",
   "scripts": {
     "test": "NODE_ENV=test mocha"
   },
   "keywords": [
     "resiliense",
+    "worker",
     "consumer",
     "ampq"
   ],
@@ -19,7 +20,7 @@
   "license": "ISC",
   "dependencies": {
     "amqp": "^0.2.6",
-    "amqplib": "^0.5.1",
+    "amqplib": "^0.5.2",
     "aws-sdk": "^2.254.1",
     "co": "^4.6.0",
     "underscore": "^1.9.1",
@@ -27,7 +28,8 @@
   },
   "devDependencies": {
     "chai": "^4.1.2",
-    "mocha-co": "^1.17.2",
+    "co-mocha": "^1.2.2",
+    "mocha": "^5.2.0",
     "rabbit-test-helper": "^1.0.1",
     "sinon": "^4.0.2"
   }

@@ -6,7 +6,7 @@ const { failInTen } = require("../support/failer")
 
 // gen worker
 const { worker, publish } = WorkerFactory.createWorker({
-  
+
   // rabbit url
   connectUrl: "amqp://localhost",
 
@@ -33,24 +33,30 @@ const { worker, publish } = WorkerFactory.createWorker({
   // max number of executing callback per message
   max_try: 2,
 
-  // (optional) smoth process of retry
+  // (optional) smooth process of retry
   retry_timeout: 5000,
 
-  // callback need return a promise
+  /**
+   * @param { Message[] } messages
+   */
   callback(messages) {
 
     return new Promise(resolve => {
       setTimeout(() => {
         messages.forEach((msg, i) => {
           try {
-            const content = msg.parsedContent()
+            const content = msg.getParsedContent()
 
             console.log("processing: ", i, content)
 
             failInTen(5)
-            msg.setAttribute("payload", { a: "123" })
+            msg.setSuccess({ msg: content })
           } catch(err) {
-            messages.setFailed(msg, err)
+
+            msg.setFail(err)
+
+            if (i === 0)
+              msg.doNotContinueTry()
           }
         })
 
@@ -61,45 +67,43 @@ const { worker, publish } = WorkerFactory.createWorker({
 
   // (optional)
   failCallback(messages) {
+    failInTen(2) //this can throw an error
+
     // this will be logged
-    console.log("fails:", messages.map(msg => msg.getError().message))
-    return messages
+    console.log("fails:", messages.map(msg => [ msg.getParsedContent(), msg.getError().message ]))
   },
 
   // (optional)
   // doc is a body message
   successCallback(messages) {
+    failInTen(1) //this can throw an error
 
-    console.log("success:", messages.map(msg => msg.getAttribute("payload")))
-
-    return messages
-  }
+    console.log("success:", messages.map(msg => msg.getSuccessPayload()))
+  },
 })
 
 
-worker.start()
+// worker.start()
+worker.start().then(() => worker.stop()).then(() => worker.start())
 
+const logLevels = [ "debug", "info", "warn", "error" ]
 
 worker.on("log", (workerName, ...data) => {
-  const [ level, messages, action ] = data
+  const [ level, messages, action, additionalInfo ] = data
 
-  switch (level) {
-    case "debug":
-    messages.forEach(msg => {
-      logger.debug(...[ workerName, msg.messageId(), msg.count(), action ])
-    })
-    break
-
-    case "error":
-    messages.forEach(msg => {
-      logger.error(...[ workerName, msg.messageId(), msg.count(), action ])
-    })
-    break
+  if (logLevels.indexOf(level) >= 0) {
+    const extra = additionalInfo ? (additionalInfo.toString ? additionalInfo.toString() : JSON.stringify(additionalInfo)) : undefined
+    if (messages.length) {
+      messages.forEach(msg => {
+        const { message: errorMessage } = msg.getError() || {}
+        logger[level]({ workerName, messageId: msg.messageId(), tryCount: msg.tryCount(), contents: msg.toString(), action, errorMessage, extra })
+      })
+    }
+    else {
+      logger[level]({ workerName, action, extra })
+    }
   }
 })
-
-
-
 
 // publish({ a: 1 })
 // publish({ a: 2 })
@@ -108,11 +112,16 @@ worker.on("log", (workerName, ...data) => {
 // publish({ a: 5 })
 
 // publish({ a: 6 })
+let n = 0
+const batch = () => {
+  setTimeout(() => {
+    let count = 0
+    while (count++ < 15)
+      publish({ a: n++ })
 
-setTimeout(() => {
-  let n = 0
-  while(n++ < 10) {
-    publish({ a: n })
-  }
+    batch()
 
-}, 100 * 1)
+  }, 1000 * 3)
+}
+
+batch()

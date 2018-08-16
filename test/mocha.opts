@@ -1,4 +1,6 @@
+--require co-mocha
 --reporter spec
 --timeout 5000
 --require test/setup.js
 --recursive
+--exit

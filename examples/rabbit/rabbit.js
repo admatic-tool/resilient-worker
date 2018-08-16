@@ -5,7 +5,7 @@ const logger = require("../support/logger")("[worker]")
 const { failInTen } = require("../support/failer")
 // gen worker
 const { worker, publish } = WorkerFactory.createWorker({
-  
+
   // rabbit url
   connectUrl: "amqp://localhost",
 
@@ -13,7 +13,7 @@ const { worker, publish } = WorkerFactory.createWorker({
   name: "RandomWorker",
   // control queue
   queue: "job_example_queue",
-  bulkSize: 10,
+  bulkSize: 1,
 
   // queue options to assert
   // queueOptions: {
@@ -32,7 +32,7 @@ const { worker, publish } = WorkerFactory.createWorker({
   // max number of executing callback per message
   max_try: 4,
 
-  // (optional) smoth process of retry
+  // (optional) smooth process of retry
   retry_timeout: 1000,
 
   // callback need return a promise
@@ -55,28 +55,29 @@ const { worker, publish } = WorkerFactory.createWorker({
   successCallback(messages) {
     // this will be logged
     // console.log(messages)
-  }
+  },
 })
 
 
 worker.start()
 
 
+const logLevels = [ "debug", "info", "warn", "error" ]
+
 worker.on("log", (workerName, ...data) => {
-  const [ level, messages, action ] = data
+  const [ level, messages, action, additionalInfo ] = data
 
-  switch (level) {
-    case "debug":
-    messages.forEach(msg => {
-      logger.debug(...[ workerName, msg.messageId(), msg.count(), action ])
-    })
-    break
-
-    case "error":
-    messages.forEach(msg => {
-      logger.error(...[ workerName, msg.messageId(), msg.count(), action ])
-    })
-    break
+  if (logLevels.indexOf(level) >= 0) {
+    const extra = additionalInfo ? (additionalInfo.toString ? additionalInfo.toString() : JSON.stringify(additionalInfo)) : undefined
+    if (messages.length) {
+      messages.forEach(msg => {
+        const { message: errorMessage } = msg.getError() || {}
+        logger[level]({ workerName, messageId: msg.messageId(), tryCount: msg.tryCount(), contents: msg.toString(), action, errorMessage, extra })
+      })
+    }
+    else {
+      logger[level]({ workerName, action, extra })
+    }
   }
 })
 

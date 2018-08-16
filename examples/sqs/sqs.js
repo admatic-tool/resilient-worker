@@ -1,6 +1,5 @@
 "use strict"
 
-const co = require("co")
 const WorkerFactory = require("../../lib/index")
 const logger = require("../support/logger")("[worker]")
 const { failInTen } = require("../support/failer")
@@ -15,14 +14,14 @@ const { worker, publish } = WorkerFactory.createWorker({
   // control queue
   broker: "sqs",
   aws: {
-    region: "us-east-1"
+    region: "us-east-1",
   },
   queue: "development-worker.fifo",
 
   // max number of executing callback per message
   max_try: 4,
 
-  // (optional) smoth process of retry
+  // (optional) smooth process of retry
   retry_timeout: 1000,
 
   // callback
@@ -44,28 +43,28 @@ const { worker, publish } = WorkerFactory.createWorker({
   successCallback(messages) {
     // this will be logged
     console.log("success:", messages.payloads())
-  }
+  },
 })
 
 
 worker.start()
 
+const logLevels = [ "debug", "info", "warn", "error" ]
 
 worker.on("log", (workerName, ...data) => {
-  const [ level, messages, action ] = data
+  const [ level, messages, action, additionalInfo ] = data
 
-  switch (level) {
-    case "debug":
-    messages.forEach(msg => {
-      logger.debug(...[ workerName, msg.messageId(), msg.count(), action ])
-    })
-    break
-
-    case "error":
-    messages.forEach(msg => {
-      logger.error(...[ workerName, msg.messageId(), msg.count(), action ])
-    })
-    break
+  if (logLevels.indexOf(level) >= 0) {
+    const extra = additionalInfo ? (additionalInfo.toString ? additionalInfo.toString() : JSON.stringify(additionalInfo)) : undefined
+    if (messages.length) {
+      messages.forEach(msg => {
+        const { message: errorMessage } = msg.getError() || {}
+        logger[level]({ workerName, messageId: msg.messageId(), tryCount: msg.tryCount(), contents: msg.toString(), action, errorMessage, extra })
+      })
+    }
+    else {
+      logger[level]({ workerName, action, extra })
+    }
   }
 })
 

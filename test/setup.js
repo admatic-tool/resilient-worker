@@ -1,21 +1,20 @@
+"use strict"
 
-const co = require("co")
-const amqplib = require("amqplib")
 const rabbitTestFactory = require("rabbit-test-helper")
 
 const config = {
   url: "amqp://localhost",
-  exchange: { 
+  exchange: {
     name: "app_test",
     routingKeys: [
-      { 
-        name: "clicks", 
+      {
+        name: "clicks",
         queues: [
-          "clicks_warehouse"
-        ] 
-      }
-    ]
-  }
+          "clicks_warehouse",
+        ],
+      },
+    ],
+  },
 }
 
 // generate a helper to build a rabbit objects
