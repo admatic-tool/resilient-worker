@@ -1,5 +1,7 @@
 Resilient Worker
 ===
+[![CircleCI](https://circleci.com/gh/admatic-tool/resilient-worker/tree/master.svg?style=svg)](https://circleci.com/gh/admatic-tool/resilient-worker/tree/master)
+
 A worker lib designed to pull-and-process messages from different queue brokers (actually supporting **RabbitMQ** and  **AWS SQS**), which offers a common interface to **retry policy**, **successCallbacks**, **failCallbacks** , **ignore messages** and **bulk processing**.
 
 
