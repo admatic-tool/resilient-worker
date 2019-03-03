@@ -21,6 +21,11 @@ jobs:
       - image: rabbitmq:3.7-alpine
     steps:
       - checkout
+      - restore_cache:
+          key: dependency-cache-{{ checksum "package.json" }}
+      - run:
+          name: Install dependencies
+          command: npm install
       - run:
           name: Test
           command: npm test
