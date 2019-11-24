@@ -29,7 +29,7 @@ describe("publish", () => {
     })
 
     it("message should be delivered in correct queue", function*() {
-      expect(msg).to.exists
+      expect(msg).to.not.be.false
     })
 
     it("should publish the correct content", () => {
@@ -44,6 +44,7 @@ describe("publish", () => {
 
   context("by queue", () => {
 
+    let msg
     before(function*() {
 
       yield RabbitHelper.build()
@@ -56,11 +57,20 @@ describe("publish", () => {
       })
 
       yield publish({ a: "b" })
+
+      const msg = yield RabbitHelper.getFrom("clicks_warehouse", { remove: true })
     })
 
     it("message should be delivered in correct queue", function*() {
-      const msg = yield RabbitHelper.getFrom("clicks_warehouse", { remove: true })
+      expect(msg).to.not.be.false
+    })
+
+    it("should publish the correct content", () => {
       expect(msg.content.toString()).to.be.equal("{\"a\":\"b\"}")
+    })
+
+    it("should be a persistent message", () => {
+      expect(msg.properties.deliveryMode).to.be.equal(2)
     })
   })
 })
