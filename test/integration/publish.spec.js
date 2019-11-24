@@ -58,7 +58,7 @@ describe("publish", () => {
 
       yield publish({ a: "b" })
 
-      const msg = yield RabbitHelper.getFrom("clicks_warehouse", { remove: true })
+      msg = yield RabbitHelper.getFrom("clicks_warehouse", { remove: true })
     })
 
     it("message should be delivered in correct queue", function*() {
