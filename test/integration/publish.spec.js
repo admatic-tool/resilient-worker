@@ -10,6 +10,7 @@ describe("publish", () => {
 
   context("by routingKey", () => {
 
+    let msg
     before(function*() {
 
       yield RabbitHelper.build()
@@ -24,12 +25,21 @@ describe("publish", () => {
       })
 
       yield publish({ a: "b" })
+      msg = yield RabbitHelper.getFrom("clicks_warehouse", { remove: true })
     })
 
     it("message should be delivered in correct queue", function*() {
-      const msg = yield RabbitHelper.getFrom("clicks_warehouse", { remove: true })
+      expect(msg).to.exists
+    })
+
+    it("should publish the correct content", () => {
       expect(msg.content.toString()).to.be.equal("{\"a\":\"b\"}")
     })
+
+    it("should be a persistent message", () => {
+      expect(msg.properties.deliveryMode).to.be.equal(2)
+    })
+
   })
 
   context("by queue", () => {
