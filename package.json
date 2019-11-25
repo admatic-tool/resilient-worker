@@ -1,6 +1,6 @@
 {
   "name": "resilient-consumer",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "A worker lib designed to pull-and-process messages from different queue brokers",
   "main": "index.js",
   "scripts": {
