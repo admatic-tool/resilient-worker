@@ -4,7 +4,17 @@
   "description": "A worker lib designed to pull-and-process messages from different queue brokers",
   "main": "index.js",
   "scripts": {
-    "test": "NODE_ENV=test mocha"
+    "eslint": "./node_modules/.bin/eslint --fix .",
+    "eslint:check": "./node_modules/.bin/eslint .",
+    "fmt": "npm run prettier && npm run eslint",
+    "fmt:check": "npm run prettier:check && npm run eslint:check",
+    "prettier": "./node_modules/.bin/prettier --write \"**/{*.js,*.json,bin/**}\"",
+    "prettier:check": "./node_modules/.bin/prettier --check \"**/{*.js,*.json,bin/**}\"",
+    "test": "./node_modules/.bin/nyc mocha --reporter spec",
+    "test:coverage-report": "nyc report --reporter=text-lcov > coverage.lcov",
+    "test:acceptance": "npm t test/acceptance/*",
+    "test:integration": "npm t test/integration/*",
+    "test:unit": "npm t test/unit/*"
   },
   "keywords": [
     "resiliense",
@@ -26,9 +36,22 @@
     "uuid": "^3.1.0"
   },
   "devDependencies": {
-    "chai": "^4.1.2",
+    "chai": "^4.2.0",
     "co-mocha": "^1.2.2",
-    "mocha": "^5.2.0",
+    "eslint": "6.2.2",
+    "eslint-config-airbnb": "18.0.1",
+    "eslint-config-prettier": "6.1.0",
+    "eslint-plugin-chai-friendly": "^0.4.1",
+    "eslint-plugin-import": "2.18.2",
+    "eslint-plugin-jsx-a11y": "6.2.3",
+    "eslint-plugin-no-unsafe-regex": "1.0.0",
+    "eslint-plugin-prettier": "3.1.0",
+    "eslint-plugin-react": "7.14.3",
+    "eslint-plugin-security": "1.4.0",
+    "eslint-plugin-you-dont-need-lodash-underscore": "6.6.0",
+    "mocha": "^6.2.1",
+    "nyc": "^14.1.1",
+    "prettier": "1.17.1",
     "rabbit-test-helper": "^1.0.1",
     "sinon": "^4.0.2"
   }
