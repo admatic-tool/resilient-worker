@@ -50,7 +50,7 @@
     "eslint-plugin-security": "1.4.0",
     "eslint-plugin-you-dont-need-lodash-underscore": "6.6.0",
     "mocha": "^6.2.1",
-    "nyc": "^14.1.1",
+    "nyc": "14.1.1",
     "prettier": "1.17.1",
     "rabbit-test-helper": "^1.0.1",
     "sinon": "^4.0.2"
