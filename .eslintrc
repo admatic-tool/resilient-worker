@@ -34,6 +34,7 @@
       }
     ],
     "no-continue": "off",
-    "no-await-in-loop": "off"
+    "no-await-in-loop": "off",
+    "prefer-object-spread": "off"
   }
 }
