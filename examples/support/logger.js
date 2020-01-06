@@ -10,28 +10,28 @@ module.exports = tag => ({
   info(args) {
     console.log(
       FgCyan,
-      JSON.stringify({ level: 'info', tag, ...args }),
+      JSON.stringify(Object.assign({ level: 'info', tag }, args)),
       BgReset
     )
   },
   debug(args) {
     console.log(
       FgWhiteBright,
-      JSON.stringify({ level: 'debug', tag, ...args }),
+      JSON.stringify(Object.assign({ level: 'debug', tag }, args)),
       BgReset
     )
   },
   warn(args) {
     console.log(
       FgYellow,
-      JSON.stringify({ level: 'warn', tag, ...args }),
+      JSON.stringify(Object.assign({ level: 'warn', tag }, args)),
       BgReset
     )
   },
   error(args) {
     console.log(
       FgRed,
-      JSON.stringify({ level: 'error', tag, ...args }),
+      JSON.stringify(Object.assign({ level: 'error', tag }, args)),
       BgReset
     )
   }
