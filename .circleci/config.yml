@@ -154,7 +154,7 @@ workflows:
     jobs:
       - build:
           context: docker-registry-auth
-          image: node:6.17.0
+          image: node:6.17.0-alpine
           name: node-6
       
       # Remova os comentário abaixo se quiser realizar build 
