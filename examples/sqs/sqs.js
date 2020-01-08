@@ -1,22 +1,18 @@
-"use strict"
-
-const WorkerFactory = require("../../lib/index")
-const logger = require("../support/logger")("[worker]")
-const { failInTen } = require("../support/failer")
-
+const WorkerFactory = require('../../lib/index')
+const logger = require('../support/logger')('[worker]')
+const { failInTen } = require('../support/failer')
 
 // gen worker
 const { worker, publish } = WorkerFactory.createWorker({
-
   // worker label name
-  name: "RandomWorker",
+  name: 'RandomWorker',
   bulkSize: 10,
   // control queue
-  broker: "sqs",
+  broker: 'sqs',
   aws: {
-    region: "us-east-1",
+    region: 'us-east-1'
   },
-  queue: "development-worker.fifo",
+  queue: 'development-worker.fifo',
 
   // max number of executing callback per message
   max_try: 4,
@@ -27,7 +23,7 @@ const { worker, publish } = WorkerFactory.createWorker({
   // callback
   callback(messages) {
     failInTen(5)
-    console.log("callback:", messages.payloads())
+    console.log('callback:', messages.payloads())
   },
 
   // (optional)
@@ -35,39 +31,47 @@ const { worker, publish } = WorkerFactory.createWorker({
   failCallback(messages) {
     // this will be logged
 
-    console.log("fail:", messages.payloads())
+    console.log('fail:', messages.payloads())
   },
 
   // (optional)
   // doc is a body message
   successCallback(messages) {
     // this will be logged
-    console.log("success:", messages.payloads())
-  },
+    console.log('success:', messages.payloads())
+  }
 })
-
 
 worker.start()
 
-const logLevels = [ "debug", "info", "warn", "error" ]
+const logLevels = ['debug', 'info', 'warn', 'error']
 
-worker.on("log", (workerName, ...data) => {
-  const [ level, messages, action, additionalInfo ] = data
+worker.on('log', (workerName, ...data) => {
+  const [level, messages, action, additionalInfo] = data
 
   if (logLevels.indexOf(level) >= 0) {
-    const extra = additionalInfo ? (additionalInfo.toString ? additionalInfo.toString() : JSON.stringify(additionalInfo)) : undefined
+    const extra =
+      additionalInfo && additionalInfo.toString
+        ? additionalInfo.toString()
+        : JSON.stringify(additionalInfo || undefined)
     if (messages.length) {
       messages.forEach(msg => {
         const { message: errorMessage } = msg.getError() || {}
-        logger[level]({ workerName, messageId: msg.messageId(), tryCount: msg.tryCount(), contents: msg.toString(), action, errorMessage, extra })
+        logger[level]({
+          workerName,
+          messageId: msg.messageId(),
+          tryCount: msg.tryCount(),
+          contents: msg.toString(),
+          action,
+          errorMessage,
+          extra
+        })
       })
-    }
-    else {
+    } else {
       logger[level]({ workerName, action, extra })
     }
   }
 })
-
 
 publish({ a: 1 })
 publish({ a: 3 })

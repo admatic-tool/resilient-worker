@@ -1,20 +1,17 @@
-"use strict"
-
-const WorkerFactory = require("../../lib/index")
-const logger = require("../support/logger")("[worker]")
-const { failInTen } = require("../support/failer")
+const WorkerFactory = require('../../lib/index')
+const logger = require('../support/logger')('[worker]')
+const { failInTen } = require('../support/failer')
 
 // gen worker
 const { worker, publish } = WorkerFactory.createWorker({
-
   // rabbit url
-  connectUrl: "amqp://localhost",
+  connectUrl: 'amqp://localhost',
 
   // worker label name
-  name: "RandomWorker",
+  name: 'RandomWorker',
   // control queue
 
-  queue: "job_example_queue",
+  queue: 'job_example_queue',
 
   // queue options to assert
   // queueOptions: {
@@ -26,8 +23,8 @@ const { worker, publish } = WorkerFactory.createWorker({
   // (optional)
   bulkSize: 10,
   publishIn: {
-    routingKey: "jobs_key",
-    exchange: "test",
+    routingKey: 'jobs_key',
+    exchange: 'test'
   },
 
   // max number of executing callback per message
@@ -40,23 +37,20 @@ const { worker, publish } = WorkerFactory.createWorker({
    * @param { Message[] } messages
    */
   callback(messages) {
-
     return new Promise(resolve => {
       setTimeout(() => {
         messages.forEach((msg, i) => {
           try {
             const content = msg.getParsedContent()
 
-            console.log("processing: ", i, content)
+            console.log('processing: ', i, content)
 
             failInTen(5)
             msg.setSuccess({ msg: content })
-          } catch(err) {
-
+          } catch (err) {
             msg.setFail(err)
 
-            if (i === 0)
-              msg.doNotContinueTry()
+            if (i === 0) msg.doNotContinueTry()
           }
         })
 
@@ -67,39 +61,54 @@ const { worker, publish } = WorkerFactory.createWorker({
 
   // (optional)
   failCallback(messages) {
-    failInTen(2) //this can throw an error
+    failInTen(2) // this can throw an error
 
     // this will be logged
-    console.log("fails:", messages.map(msg => [ msg.getParsedContent(), msg.getError().message ]))
+    console.log(
+      'fails:',
+      messages.map(msg => [msg.getParsedContent(), msg.getError().message])
+    )
   },
 
   // (optional)
   // doc is a body message
   successCallback(messages) {
-    failInTen(1) //this can throw an error
+    failInTen(1) // this can throw an error
 
-    console.log("success:", messages.map(msg => msg.getSuccessPayload()))
-  },
+    console.log('success:', messages.map(msg => msg.getSuccessPayload()))
+  }
 })
 
-
 // worker.start()
-worker.start().then(() => worker.stop()).then(() => worker.start())
+worker
+  .start()
+  .then(() => worker.stop())
+  .then(() => worker.start())
 
-const logLevels = [ "debug", "info", "warn", "error" ]
+const logLevels = ['debug', 'info', 'warn', 'error']
 
-worker.on("log", (workerName, ...data) => {
-  const [ level, messages, action, additionalInfo ] = data
+worker.on('log', (workerName, ...data) => {
+  const [level, messages, action, additionalInfo] = data
 
   if (logLevels.indexOf(level) >= 0) {
-    const extra = additionalInfo ? (additionalInfo.toString ? additionalInfo.toString() : JSON.stringify(additionalInfo)) : undefined
+    const extra =
+      additionalInfo && additionalInfo.toString
+        ? additionalInfo.toString()
+        : JSON.stringify(additionalInfo || undefined)
     if (messages.length) {
       messages.forEach(msg => {
         const { message: errorMessage } = msg.getError() || {}
-        logger[level]({ workerName, messageId: msg.messageId(), tryCount: msg.tryCount(), contents: msg.toString(), action, errorMessage, extra })
+        logger[level]({
+          workerName,
+          messageId: msg.messageId(),
+          tryCount: msg.tryCount(),
+          contents: msg.toString(),
+          action,
+          errorMessage,
+          extra
+        })
       })
-    }
-    else {
+    } else {
       logger[level]({ workerName, action, extra })
     }
   }
@@ -115,12 +124,12 @@ worker.on("log", (workerName, ...data) => {
 let n = 0
 const batch = () => {
   setTimeout(() => {
-    let count = 0
-    while (count++ < 15)
-      publish({ a: n++ })
+    for (let count = 0; count < 15; count += 1) {
+      publish({ a: n })
+      n += 1
+    }
 
     batch()
-
   }, 1000 * 3)
 }
 
