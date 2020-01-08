@@ -54,6 +54,12 @@ const { worker, publish } = WorkerFactory.createWorker({
    */
   queue: "job_example_queue",
   
+  /**
+   * (default: bulkSize)
+   * How many messages will be received at once from the broker
+   */
+  prefetch: 10,
+  
   /** 
     * (default: 1)
     * Is a size of bulk messages that need be filled before worker begin to proccess messages
