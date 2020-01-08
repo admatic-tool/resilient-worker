@@ -24,7 +24,7 @@ describe('RabbitBroker', () => {
       })
 
       it('should try to create new channel', () => {
-        expect(newChannelStub.called).to.be.true
+        expect(newChannelStub.calledOnce).to.be.true
       })
 
       it('should populate _publisherChannel variable', () => {
@@ -37,6 +37,53 @@ describe('RabbitBroker', () => {
 
       it('should create the channel', () => {
         expect(result).to.be.eql(resolvedChannel)
+      })
+
+      after(() => {
+        sinon.restore()
+      })
+    })
+
+    context('subsequent calls to _getPublisherChannel', () => {
+      let resolvedChannel
+      let newChannelStub
+      let rabbit
+      let result
+      let result2
+
+      before(function*() {
+        rabbit = new RabbitBroker({ validate: false })
+        const on = sinon.fake()
+
+        resolvedChannel = { on }
+
+        newChannelStub = sinon
+          .stub(rabbit, '_newChannel')
+          .resolves(resolvedChannel)
+
+        result = yield rabbit._getPublisherChannel()
+
+        result2 = yield rabbit._getPublisherChannel()
+      })
+
+      it('should try to create new channel', () => {
+        expect(newChannelStub.calledOnce).to.be.true
+      })
+
+      it('should populate _publisherChannel variable', () => {
+        expect(rabbit._getPublisherChannel).to.not.be.null
+      })
+
+      it('should attach a callback to the created channel', () => {
+        expect(resolvedChannel.on.calledOnce).to.be.true
+      })
+
+      it('should create the channel', () => {
+        expect(result).to.be.eql(resolvedChannel)
+      })
+
+      it('should return the same channel on the second call', () => {
+        expect(result2).to.be.eql(resolvedChannel)
       })
 
       after(() => {
