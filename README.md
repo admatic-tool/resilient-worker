@@ -53,7 +53,7 @@ const { worker, publish } = WorkerFactory.createWorker({
    * The target Queue that worker will consume
    */
   queue: "job_example_queue",
-  
+
   /**
    * (default: bulkSize)
    * How many messages will be received at once from the broker
@@ -90,7 +90,7 @@ const { worker, publish } = WorkerFactory.createWorker({
   /**
    * (optional)
    * (Only for rabbitMq)
-   * queueOptions: If is setted are useds to assert queue, create queue if it not exists
+   * queueOptions: Used to assert queue, create queue if it doesn't exist
    * or confirm these properties in target queue before start()
   */
   queueOptions: {
@@ -276,4 +276,8 @@ const { worker, publish } = WorkerFactory.createWorker({
 ```
 
 # Roadmap
-  - Support for publishing in **AWS SNS Topic** to aws `publish()`, using the worker's `publishIn` attribute. << não entendi
+  - [sqs broker] Support for publishing in a **AWS SNS Topic**, using the worker's `publishIn` attribute.
+  - Add own logger
+  - Add publisher retries
+  - Use backoff factor for retries
+  - Drop ES5 support
