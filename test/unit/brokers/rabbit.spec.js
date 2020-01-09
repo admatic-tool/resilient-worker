@@ -136,6 +136,33 @@ describe('RabbitBroker', () => {
       const message = { my: 'mesage' }
       const executionId = '123'
       const tryCount = 0
+
+      context('when publishing fails', () => {
+        it('should not swallow error', function*() {
+          const rabbit = new RabbitBroker({
+            validate: false,
+            publishIn
+          })
+
+          const channelPublishStub = sinon.stub().throws('Test rabbit error')
+
+          sinon
+            .stub(rabbit, '_getPublisherChannel')
+            .resolves({ publish: channelPublishStub })
+
+          try {
+            yield rabbit.publish(message, executionId, tryCount)
+            expect.fail("publish didn't throw an error")
+          } catch (err) {
+            expect(err).to.be.an('Error')
+            expect(err.name).to.be.eql('Test rabbit error')
+          }
+        })
+
+        after(() => {
+          sinon.restore()
+        })
+      })
       let result
 
       let channelPublishFake
