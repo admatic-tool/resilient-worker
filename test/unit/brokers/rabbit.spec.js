@@ -376,7 +376,187 @@ describe('RabbitBroker', () => {
 
   context('.consume', () => {})
 
-  context('.requeue', () => {})
+  context('.requeue', () => {
+    const queue = 'requeue'
+    context('when _getPublisherChannel fails', () => {
+      it('should not swallow error', function*() {
+        const rabbit = new RabbitBroker({ validate: false })
+
+        sinon.stub(rabbit, '_getPublisherChannel').throws('Test error')
+
+        try {
+          yield rabbit.requeue()
+          expect.fail("requeue didn't throw an error")
+        } catch (err) {
+          expect(err).to.be.an('Error')
+          expect(err.name).to.be.eql('Test error')
+        }
+      })
+
+      after(() => {
+        sinon.restore()
+      })
+    })
+
+    context('when _assertQueue fails', () => {
+      it('should not swallow error', function*() {
+        const rabbit = new RabbitBroker({ validate: false })
+
+        sinon.stub(rabbit, '_getPublisherChannel').resolves()
+
+        sinon.stub(rabbit, '_assertQueue').throws('Test error')
+
+        try {
+          yield rabbit.requeue()
+          expect.fail("requeue didn't throw an error")
+        } catch (err) {
+          expect(err).to.be.an('Error')
+          expect(err.name).to.be.eql('Test error')
+        }
+      })
+    })
+
+    context('when _assertQueue returns false', () => {
+      it('should throw error', function*() {
+        const rabbit = new RabbitBroker({
+          queue,
+          validate: false
+        })
+
+        const ch = { publish: () => 'blah' }
+        sinon.stub(rabbit, '_getPublisherChannel').resolves(ch)
+
+        sinon.stub(rabbit, '_assertQueue').resolves(false)
+
+        try {
+          yield rabbit.requeue()
+          expect.fail("requeue didn't throw an error")
+        } catch (err) {
+          expect(err).to.be.an('Error')
+          expect(err.message).to.be.eql(`queue not match ${queue}`)
+        }
+
+        after(() => {
+          sinon.restore()
+        })
+      })
+    })
+
+    context('when sendToQueue fails', () => {
+      it('should not swallow error', function*() {
+        const rabbit = new RabbitBroker({
+          validate: false,
+          queue
+        })
+
+        const msg = {
+          getBufferContent: sinon.fake(),
+          nextTryCount: sinon.fake(),
+          messageId: sinon.fake()
+        }
+
+        const sendToQueueFake = sinon.fake.throws('Test rabbit error')
+
+        sinon
+          .stub(rabbit, '_getPublisherChannel')
+          .resolves({ sendToQueue: sendToQueueFake })
+
+        sinon.stub(rabbit, '_assertQueue').resolves(true)
+
+        sinon.stub(console, 'error')
+
+        try {
+          yield rabbit.requeue(msg)
+          expect.fail("requeue didn't throw an error")
+        } catch (err) {
+          expect(err).to.be.an('Error')
+          expect(err.message).to.be.eql('Test rabbit error')
+
+          expect(console.error.calledOnceWithExactly(err)).to.be.true
+        }
+      })
+
+      after(() => {
+        sinon.restore()
+      })
+    })
+
+    context('when requeue with success', () => {
+      const expectedMsg = {
+        bufferContent: 'content',
+        nextTryCount: 10,
+        messageId: '991991919'
+      }
+
+      let assertQueueStub
+      let channelSendToQueueFake
+      let getPublisherChannelStub
+      let msg
+      let result
+      let resolvedChannel
+
+      before(function*() {
+        const rabbit = new RabbitBroker({
+          validate: false,
+          queue
+        })
+
+        msg = {
+          getBufferContent: sinon.fake.returns(expectedMsg.bufferContent),
+          nextTryCount: sinon.fake.returns(expectedMsg.nextTryCount),
+          messageId: sinon.fake.returns(expectedMsg.messageId)
+        }
+
+        channelSendToQueueFake = sinon.fake()
+
+        assertQueueStub = sinon.stub(rabbit, '_assertQueue').resolves(true)
+
+        resolvedChannel = { sendToQueue: channelSendToQueueFake }
+
+        getPublisherChannelStub = sinon
+          .stub(rabbit, '_getPublisherChannel')
+          .resolves(resolvedChannel)
+
+        result = yield rabbit.requeue(msg)
+      })
+
+      it('should return true', () => {
+        expect(result).to.be.true
+      })
+
+      it('should call _getPublisherChannel', () => {
+        expect(getPublisherChannelStub.calledOnce).to.be.true
+      })
+
+      it('should call _assertQueue with channel', () => {
+        expect(assertQueueStub.calledOnceWithExactly(resolvedChannel)).to.be
+          .true
+      })
+      it('should call sendToQueue', () => {
+        expect(channelSendToQueueFake.calledOnce).to.be.true
+      })
+
+      it('should call sendToQueue with the correct parameters', () => {
+        expect(
+          channelSendToQueueFake.calledOnceWithExactly(
+            queue,
+            expectedMsg.bufferContent,
+            {
+              headers: {
+                try_count: expectedMsg.nextTryCount
+              },
+              messageId: expectedMsg.messageId,
+              persistent: true
+            }
+          )
+        ).to.be.true
+      })
+
+      after(() => {
+        sinon.restore()
+      })
+    })
+  })
 
   context('.stop', () => {})
 
