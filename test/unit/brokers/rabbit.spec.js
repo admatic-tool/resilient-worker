@@ -374,7 +374,141 @@ describe('RabbitBroker', () => {
     })
   })
 
-  context('.consume', () => {})
+  context('.consume', () => {
+    context('when _consumerTag is set', () => {
+      it('should throw error', function*() {
+        const queue = 'consume'
+
+        const rabbit = new RabbitBroker({
+          validate: false,
+          queue
+        })
+
+        const consumerTag = 'blah'
+        rabbit._consumerTag = consumerTag
+
+        try {
+          yield rabbit.consume()
+          expect.fail("consume didn't throw an error")
+        } catch (err) {
+          expect(err).to.be.an('Error')
+          expect(err.message).to.be.eql(
+            `Worker is already consuming queue ${queue}. consumer tag: ${consumerTag}`
+          )
+        }
+      })
+
+      after(() => {
+        sinon.restore()
+      })
+    })
+
+    context('when _newChannel throws error', () => {
+      it('should not swallow error', function*() {
+        const rabbit = new RabbitBroker({
+          validate: false
+        })
+
+        sinon.stub(rabbit, '_newChannel').throws('Test newchannel error')
+
+        try {
+          yield rabbit.consume()
+          expect.fail("consume didn't throw an error")
+        } catch (err) {
+          expect(err).to.be.an('Error')
+          expect(err.name).to.be.eql('Test newchannel error')
+        }
+      })
+
+      after(() => {
+        sinon.restore()
+      })
+    })
+
+    context('when consume with sucess', () => {
+      let handleConsumerEventsStub
+      let newChannelStub
+      let prefetchFake
+      let rabbit
+      let result
+      let consumeFake
+      let ch
+      const queue = 'consume'
+      const prefetch = 99
+      const consumeResult = {
+        consumerTag: 'my-tag'
+      }
+      const callback = () => true
+
+      before(function*() {
+        rabbit = new RabbitBroker({
+          validate: false,
+          queue,
+          prefetch
+        })
+
+        prefetchFake = sinon.fake()
+        consumeFake = sinon.fake.resolves(consumeResult)
+
+        ch = {
+          prefetch: prefetchFake,
+          consume: consumeFake
+        }
+
+        handleConsumerEventsStub = sinon.stub(rabbit, '_handleConsumerEvents')
+
+        newChannelStub = sinon.stub(rabbit, '_newChannel').resolves(ch)
+
+        result = yield rabbit.consume(callback)
+      })
+
+      it('should return undefined', () => {
+        expect(result).to.be.undefined
+      })
+
+      it('should create channel', () => {
+        expect(newChannelStub.calledOnce).to.be.true
+      })
+
+      it('should set prefetch', () => {
+        expect(prefetchFake.calledOnceWithExactly(prefetch)).to.be.true
+      })
+
+      it('should call consume', () => {
+        expect(consumeFake.calledOnce).to.be.true
+      })
+
+      it('should call consume with correct parameters', () => {
+        expect(consumeFake.calledWithMatch(queue, sinon.match.func)).to.be.true
+      })
+
+      it('should set consumerTag', () => {
+        expect(rabbit._consumerTag).to.be.eql(consumeResult.consumerTag)
+      })
+
+      it('should set _consumerChannel', () => {
+        expect(rabbit._consumerChannel).to.be.eql(ch)
+      })
+
+      it('should call _handleConsumerEvents', () => {
+        expect(handleConsumerEventsStub.calledOnce).to.be.true
+      })
+
+      it('should call _handleConsumerEvents with correct parameters', () => {
+        expect(
+          handleConsumerEventsStub.calledOnceWithExactly(
+            ch,
+            consumeResult.consumerTag,
+            callback
+          )
+        ).to.be.true
+      })
+
+      after(() => {
+        sinon.restore()
+      })
+    })
+  })
 
   context('.requeue', () => {
     const queue = 'requeue'
