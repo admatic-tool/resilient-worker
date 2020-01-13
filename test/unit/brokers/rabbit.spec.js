@@ -692,7 +692,135 @@ describe('RabbitBroker', () => {
     })
   })
 
-  context('.stop', () => {})
+  context('.stop', () => {
+    context('when it is not consuming', () => {
+      it('should resolve as true', function*() {
+        const rabbit = new RabbitBroker({
+          validate: false
+        })
+
+        const result = yield rabbit.stop()
+
+        expect(result).to.be.true
+      })
+    })
+
+    context('when there is consumerChannel', () => {
+      context('when channel.cancel throws error', () => {
+        const consumerTag = 'my-tag-123'
+        let consumerChannel
+        let rabbit
+
+        before(function*() {
+          rabbit = new RabbitBroker({
+            validate: false
+          })
+
+          const cancelFake = sinon.fake.rejects(new Error('Test cancel fake'))
+          const closeFake = sinon.fake()
+
+          const connection = {
+            close: sinon.stub()
+          }
+
+          consumerChannel = {
+            connection,
+            cancel: cancelFake,
+            close: closeFake
+          }
+
+          sinon.stub(rabbit, '_consumerChannel').value(consumerChannel)
+          sinon.stub(rabbit, '_consumerTag').value(consumerTag)
+
+          sinon.stub(console, 'error')
+
+          yield rabbit.stop()
+        })
+
+        it('should call cancel with consumerTag', () => {
+          expect(consumerChannel.cancel.calledOnceWithExactly(consumerTag)).to
+            .be.true
+        })
+
+        it('should log console.error', () => {
+          expect(
+            console.error.calledOnceWithExactly(
+              `Error when cancelling consumer tag ${consumerTag}`,
+              'Test cancel fake'
+            )
+          ).to.be.true
+        })
+
+        it('should not modify consumerTag', () => {
+          expect(rabbit._consumerTag).to.be.eql(consumerTag)
+        })
+
+        it('should not modify consumerChannel', () => {
+          expect(rabbit._consumerChannel).to.be.eql(consumerChannel)
+        })
+
+        after(() => {
+          sinon.restore()
+        })
+      })
+
+      context('when cancel with success', () => {
+        const consumerTag = 'my-tag-123'
+        let channelCloseFake
+        let consumerChannel
+        let rabbit
+
+        before(function*() {
+          rabbit = new RabbitBroker({
+            validate: false
+          })
+
+          const cancelFake = sinon.fake.resolves()
+          channelCloseFake = sinon.fake()
+
+          const connection = {
+            close: sinon.stub()
+          }
+
+          consumerChannel = {
+            connection,
+            cancel: cancelFake,
+            close: channelCloseFake
+          }
+
+          sinon.stub(rabbit, '_consumerChannel').value(consumerChannel)
+          sinon.stub(rabbit, '_consumerTag').value(consumerTag)
+
+          yield rabbit.stop()
+        })
+
+        it('should call cancel with consumerTag', () => {
+          expect(consumerChannel.cancel.calledOnceWithExactly(consumerTag)).to
+            .be.true
+        })
+
+        it('should try to close channel', () => {
+          expect(channelCloseFake.calledOnce).to.be.true
+        })
+
+        it('should try to close connection', () => {
+          expect(consumerChannel.connection.close.calledOnce).to.be.true
+        })
+
+        it('should not set _consumerTag to null', () => {
+          expect(rabbit._consumerTag).to.be.null
+        })
+
+        it('should not modify _consumerChannel to be null', () => {
+          expect(rabbit._consumerChannel).to.be.null
+        })
+
+        after(() => {
+          sinon.restore()
+        })
+      })
+    })
+  })
 
   context('.validate', () => {})
 })
