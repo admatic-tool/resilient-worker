@@ -822,5 +822,48 @@ describe('RabbitBroker', () => {
     })
   })
 
-  context('.validate', () => {})
+  context('._validate', () => {
+    context('when there are errors', () => {
+      let rabbit
+      let error
+
+      before(() => {
+        rabbit = new RabbitBroker({ validate: false })
+
+        try {
+          rabbit._validate({ publishIn: {} })
+        } catch (err) {
+          error = err
+        }
+      })
+
+      it('should check if connectUrl is not defined', () => {
+        expect(error.message).to.match(/connectUrl is not defined/)
+      })
+
+      it('should check if callback is not defined', () => {
+        expect(error.message).to.match(/callback is not defined/)
+      })
+
+      it('should check if publishIn.exchange is not defined', () => {
+        expect(error.message).to.match(/exchange is not defined/)
+      })
+
+      it('should check if publishIn.routingKey is not defined', () => {
+        expect(error.message).to.match(/routingKey is not defined/)
+      })
+    })
+
+    context('no errors', () => {
+      it('should return opts', () => {
+        const rabbit = new RabbitBroker({ validate: false })
+
+        const opts = {
+          connectUrl: 'bla',
+          callback: () => true
+        }
+        expect(rabbit._validate(opts)).to.be.eql(opts)
+      })
+    })
+  })
 })
