@@ -277,7 +277,8 @@ const { worker, publish } = WorkerFactory.createWorker({
 
 # Roadmap
   - [sqs broker] Support for publishing in a **AWS SNS Topic**, using the worker's `publishIn` attribute.
-  - Add own logger
-  - Add publisher retries
-  - Use backoff factor for retries
-  - Drop ES5 support
+  - [logging] Add own logger
+  - [brokers] Add publisher retries
+  - [brokers] Use backoff factor for retries
+  - [**Breaking Change**] [lib] Drop ES5 support
+  - [**Breaking Change**] [rabbit broker] Throw errors on `stop()`
