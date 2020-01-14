@@ -24,7 +24,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/admatic-tool/resilient-worker.git"
+    "url": "https://github.com/b2wads/resilient-worker.git"
   },
   "author": "Luiz Zamboni",
   "license": "ISC",
