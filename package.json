@@ -1,6 +1,6 @@
 {
   "name": "resilient-consumer",
-  "version": "2.0.2",
+  "version": "2.1.0",
   "description": "A worker lib designed to pull-and-process messages from different queue brokers",
   "main": "index.js",
   "scripts": {
@@ -24,7 +24,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/admatic-tool/resilient-worker.git"
+    "url": "https://github.com/b2wads/resilient-worker.git"
   },
   "author": "Luiz Zamboni",
   "license": "ISC",
