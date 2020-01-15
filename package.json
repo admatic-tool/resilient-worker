@@ -29,7 +29,7 @@
   "author": "Luiz Zamboni",
   "license": "ISC",
   "dependencies": {
-    "amqplib": "^0.5.2",
+    "amqplib": "0.5.5",
     "aws-sdk": "^2.254.1",
     "co": "^4.6.0",
     "underscore": "^1.9.1",
@@ -53,6 +53,6 @@
     "nyc": "14.1.1",
     "prettier": "1.17.1",
     "rabbit-test-helper": "^1.0.1",
-    "sinon": "^4.0.2"
+    "sinon": "8.0.4"
   }
 }

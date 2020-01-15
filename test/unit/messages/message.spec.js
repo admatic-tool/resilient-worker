@@ -1,4 +1,4 @@
-const Message = require('../../lib/messages/message')
+const Message = require('../../../lib/messages/message')
 
 describe('Message', () => {
   const msg = new Message(
