@@ -79,13 +79,13 @@ const WorkerFactory = (connectUrl, opts = {}) => {
 
           emitter.emit("log", "debug", name, "publishing", message)
 
-          ch.close()
+          yield ch.close()
 
           return true
 
         } catch(err) {
 
-          ch.close()
+          yield ch.close()
           throw err
         }
       })
